@@ -108,7 +108,18 @@ public class Lab1 {
             return profesori;
         }
 
-        
+        public void afisare(){
+            System.out.println("Nume: " + nume);
+            System.out.println("Obiect: " + obiect);
+            System.out.println("Rautaciune: " + rautaciune);
+            System.out.println("Galagie: " + galagie);
+            System.out.println("Numar grupe: " + nrGrupe);
+            System.out.print("Numar studenti pe grupe: ");
+            for(int i=0; i<nrGrupe; i++){
+                System.out.print(nrStudenti[i] + " ");
+            }
+            System.out.println();
+        }
 
 
     }
