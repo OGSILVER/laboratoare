@@ -1,5 +1,5 @@
 public class Lab1 {
-    public class Prof {
+    public static class Prof {
         private String nume;
         private String obiect;
         private double rautaciune;
@@ -108,6 +108,8 @@ public class Lab1 {
             return profesori;
         }
 
+
+    //metode
         public void afisare(){
             System.out.println("Nume: " + nume);
             System.out.println("Obiect: " + obiect);
@@ -118,7 +120,34 @@ public class Lab1 {
             for(int i=0; i<nrGrupe; i++){
                 System.out.print(nrStudenti[i] + " ");
             }
-            System.out.println();
+            System.out.println("Numar profesori inregistrati: " + profesori);
+        }
+
+        public int sumaSarmanilor(){
+            int suma = 0;
+            for(int i = 0; i<nrGrupe; i++){
+                suma += nrStudenti[i];
+            }
+            return suma;
+        }
+
+        public void citireProf(){
+            java.util.Scanner scanner = new java.util.Scanner(System.in);
+            System.out.print("Nume: ");
+            this.nume = scanner.nextLine();
+            System.out.print("Obiect: ");
+            this.obiect = scanner.nextLine();
+            System.out.print("Rautaciune: ");
+            this.rautaciune = scanner.nextDouble();
+            System.out.print("Galagie: ");
+            this.galagie = scanner.nextFloat();
+            System.out.print("Numar grupe: ");
+            this.nrGrupe = scanner.nextShort();
+            this.nrStudenti = new long[nrGrupe];
+            for(int i=0; i<nrGrupe; i++){
+                System.out.print("Numar studenti grupa " + (i+1) + ": ");
+                this.nrStudenti[i] = scanner.nextLong();
+            }
         }
 
 
@@ -128,7 +157,17 @@ public class Lab1 {
     
 
     public static void main(String[] args){
-        
+
+        Prof p1 = new Prof();
+        p1.setGalagie(20f);
+        p1.afisare();
+        System.out.println();
+
+        Prof p2 = new Prof();
+        p2.citireProf();
+        p2.afisare();
+        System.out.println("Suma sarmanilor: " + p2.sumaSarmanilor());
+        System.out.println();
     } 
 
 }
