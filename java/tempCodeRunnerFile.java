@@ -1,8 +1,7 @@
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.Random;
 import java.util.Scanner;
-import java.io.FileWriter;
-import java.io.IOException;
 
 
 public class Lab1 {
@@ -163,7 +162,7 @@ public class Lab1 {
             for(int i=0; i<nrGrupe; i++){
                 System.out.print(nrStudenti[i] + " ");
             }
-            System.out.println();
+            System.out.println("Numar profesori inregistrati: " + profesori);
         }
 
         public int sumaSarmanilor(){
@@ -261,23 +260,6 @@ public class Lab1 {
                 }
             }
         }
-
-        public void inscrieProf(String fileName,Prof prof) {
-            try {
-                FileWriter fw = new FileWriter(fileName + ".txt");
-                fw.write(prof.nume + "\n");
-                fw.write(prof.obiect + "\n");
-                fw.write(prof.rautaciune + "\n");
-                fw.write(prof.galagie + "\n");
-                fw.write(prof.nrGrupe + "\n");
-                for(int i=0; i<prof.nrGrupe; i++){
-                    fw.write(prof.nrStudenti[i] + " ");
-                }
-                fw.close();
-            } catch (IOException e) {
-                System.out.println("Eroare la scrierea in fisier: " + e.getMessage());
-            }
-        }
     }
 
     
@@ -342,7 +324,7 @@ public class Lab1 {
         univer[0].popularProf(univer[3]);
         univer[1].popularProf(univer[2]);
 
-        System.out.println("\n--- Comparare stres studenti ---");
+        System.out.println("\n--- Comparare stres studenți ---");
         Prof.stressCalc(univer[0], univer[3]);
         Prof.stressCalc(univer[1], univer[2]);
 
@@ -361,7 +343,7 @@ public class Lab1 {
             System.out.println("Niciun prof nu predă acelasi obiect ca primul prof.");
         }
 
-        // 7. Afișare număr total de profi creați
+        // 7. Afișare număr total de profi creați (variabilă statică)
         System.out.println("\nNumar total de profi creati: " + Prof.getProfesori());
     }
 
