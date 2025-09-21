@@ -363,6 +363,131 @@ public class Lab1 {
 
         // 7. Afișare număr total de profi creați
         System.out.println("\nNumar total de profi creati: " + Prof.getProfesori());
+    
+
+        File folder = new File(".");
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".txt") && !name.equals("profText.txt"));
+
+        for(int i = 0; i<files.length; i++){
+            files[i].delete();
+        }
+
+
+
+
+        String numeScrise[] = new String[n];
+        int dupes = 0;
+        int nrNumescrise = 0;
+        
+        
+
+        for(int i = 0; i < n; i++){
+            boolean isDupe = false;
+
+            for(int j = 0; j < n; j++){
+                if(numeScrise[j] != null){
+                    nrNumescrise++;
+                }
+            }
+
+            for(int l = 0; l < nrNumescrise; l++){
+                if (univer[i].getNume().equals(numeScrise[l])){
+                    isDupe = true;
+                }
+            }
+
+            if(!isDupe){
+                try {
+                    numeScrise[i] = univer[i].getNume();
+                    FileWriter fw = new FileWriter(univer[i].getNume() + ".txt");
+                    fw.write(univer[i].getNume() + "\n");
+                    fw.write(univer[i].getObiect() + "\n");
+                    fw.write(univer[i].getRautaciune() + "\n");
+                    fw.write(univer[i].getGalagie() + "\n");
+                    fw.write(univer[i].getNrGrupe() + "\n");
+                    for(int j = 0; j < univer[i].getNrGrupe(); j++){    
+                        fw.write(univer[i].getNrStudenti()[j] + " ");
+                    }
+
+                    fw.close();
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+
+            }else{
+                System.out.println("nume duplicat, creeam fisier cu suffix (n)");
+
+                try {
+                    numeScrise[i] = univer[i].getNume();
+                    FileWriter fw = new FileWriter(univer[i].getNume() + "" + ".txt");
+                    fw.write(univer[i].getNume() + "\n");
+                    fw.write(univer[i].getObiect() + "\n");
+                    fw.write(univer[i].getRautaciune() + "\n");
+                    fw.write(univer[i].getGalagie() + "\n");
+                    fw.write(univer[i].getNrGrupe() + "\n");
+                    for(int j = 0; j < univer[i].getNrGrupe(); j++){    
+                        fw.write(univer[i].getNrStudenti()[j] + " ");
+                    }
+
+                    fw.close();
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }
+
+
+        }
+
+
+/*            if(univer[i] != null && "add logic"){
+
+                
+                try {
+                    numeScrise[i] = univer[i].getNume();
+                    FileWriter fw = new FileWriter(univer[i].getNume() + ".txt");
+                    fw.write(univer[i].getNume() + "\n");
+                    fw.write(univer[i].getObiect() + "\n");
+                    fw.write(univer[i].getRautaciune() + "\n");
+                    fw.write(univer[i].getGalagie() + "\n");
+                    fw.write(univer[i].getNrGrupe() + "\n");
+                    for(int j = 0; j < univer[i].getNrGrupe(); j++){    
+                        fw.write(univer[i].getNrStudenti()[j] + " ");
+                    }
+
+                    fw.close();
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }else{
+                System.out.println("name found twice! writing as Nume + (i)");
+                dupes++;
+                try {
+                    numeScrise[i] = univer[i].getNume() + "(" + dupes + ")";
+                    FileWriter fw = new FileWriter(univer[i].getNume() +  "(" + dupes + ")" + ".txt");
+                    fw.write(univer[i].getNume() + "\n");
+                    fw.write(univer[i].getObiect() + "\n");
+                    fw.write(univer[i].getRautaciune() + "\n");
+                    fw.write(univer[i].getGalagie() + "\n");
+                    fw.write(univer[i].getNrGrupe() + "\n");
+                    for(int j = 0; j < univer[i].getNrGrupe(); j++){    
+                        fw.write(univer[i].getNrStudenti()[j] + " ");
+                    }
+
+                    fw.close();
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }
+         */
+        
+          
+    
+
+
+       
     }
+
+
+    
 
 }
