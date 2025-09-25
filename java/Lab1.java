@@ -363,9 +363,12 @@ public class Lab1 {
 
         // 7. Afișare număr total de profi creați
         System.out.println("\nNumar total de profi creati: " + Prof.getProfesori());
+
+        // 9. Inscrierea profesorului în fișier
+            univer[0].inscrieProf("profInscrisManual", univer[0]);
     
 
-        // 8. Scriere in fisiere
+
         File folder = new File(".");
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".txt") && !name.equals("profText.txt"));
 
@@ -399,16 +402,6 @@ public class Lab1 {
             }else{
                 System.out.println("Found a null entry, skipping.");
             }
-        
-        
-          
-    
-
-
-       
+        }
     }
-
-
-    }
-
 }
