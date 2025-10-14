@@ -29,9 +29,10 @@ public class Lab1 {
         //partial
         public Prof(String nume, double rautaciune, float galagie){
             this();
+
             this.nume = nume;
-            this.rautaciune = rautaciune;
-            this.galagie = galagie;
+            this.rautaciune = Check.checkPositiveDouble(rautaciune);
+            this.galagie = Check.checkPositiveFloat(galagie);
         }
         
         //partial
@@ -44,15 +45,15 @@ public class Lab1 {
 
 
         //full
-        public Prof(String nume, String obiect, double rautaciune, float galagie, short nrGrupe, long nrStudenti){
+        public Prof(String nume, String obiect, double rautaciune, float galagie, short nrGrupe, long[] nrStudenti){
             this.nume = nume;
             this.obiect = obiect;
-            this.rautaciune = rautaciune;
-            this.galagie = galagie;
-            this.nrGrupe = nrGrupe;
+            this.rautaciune = Check.checkPositiveDouble(rautaciune);
+            this.galagie = Check.checkPositiveFloat(galagie);
+            this.nrGrupe = Check.checkPositiveShort(nrGrupe);
             this.nrStudenti = new long[nrGrupe];
             for(int i=0; i<nrGrupe; i++){
-                this.nrStudenti[i] = nrStudenti;
+                this.nrStudenti[i] = nrStudenti[i];
             }
             profesori++;
         }
@@ -108,6 +109,7 @@ public class Lab1 {
 
         //setters
         public void setNume(String nume){
+
             this.nume = nume;
         }
         public void setObiect(String obiect){
@@ -117,15 +119,27 @@ public class Lab1 {
             this.rautaciune = rautaciune;
         }
         public void setGalagie(float galagie){
-            this.galagie = galagie;
+            this.galagie = Check.checkPositiveFloat(galagie);
         }
         public void setNrGrupe(short nrGrupe){
-            this.nrGrupe = nrGrupe;
+            this.nrGrupe = Check.checkPositiveShort(nrGrupe);
+
+            long[] temp = new long[nrGrupe];
+            temp = nrStudenti;
+            if (nrStudenti.length < temp.length) {
+                for(int i = 0; i < nrStudenti.length; i++){
+                nrStudenti[i] = temp[i];
+                }
+            }else{
+                for(int i = 0; i < nrGrupe; i++){
+                nrStudenti[i] = temp[i];
+                }
+            }
         }
         public void setNrStudenti(long nrStudenti[]){
             this.nrStudenti = new long[nrGrupe];
             for(int i=0; i<nrGrupe; i++){
-                this.nrStudenti[i] = nrStudenti[i];
+                this.nrStudenti[i] = Check.checkPositiveLong(nrStudenti[i]);
             }
         }
         //getters
@@ -146,6 +160,10 @@ public class Lab1 {
         }
         public long[] getNrStudenti(){
             return this.nrStudenti;
+        }
+        public long getNrStudentiSingle(int i){
+            Check.checkPositiveLong(i);
+            return this.nrStudenti[i];
         }
         public static int getProfesori(){
             return profesori;
@@ -176,20 +194,22 @@ public class Lab1 {
 
         public void citireProf(){
             java.util.Scanner scanner = new java.util.Scanner(System.in);
+            
+            
             System.out.print("Nume: ");
             this.nume = scanner.nextLine();
             System.out.print("Obiect: ");
             this.obiect = scanner.nextLine();
             System.out.print("Rautaciune: ");
-            this.rautaciune = scanner.nextDouble();
+            this.rautaciune = Check.checkPositiveDouble(scanner.nextDouble());
             System.out.print("Galagie: ");
-            this.galagie = scanner.nextFloat();
+            this.galagie = Check.checkPositiveFloat(scanner.nextFloat());
             System.out.print("Numar grupe: ");
-            this.nrGrupe = scanner.nextShort();
+            this.nrGrupe = Check.checkPositiveShort(scanner.nextShort());
             this.nrStudenti = new long[nrGrupe];
             for(int i=0; i<nrGrupe; i++){
                 System.out.print("Numar studenti grupa " + (i+1) + ": ");
-                this.nrStudenti[i] = scanner.nextLong();
+                this.nrStudenti[i] = Check.checkPositiveLong(scanner.nextLong());
             }
             
         }
@@ -283,13 +303,15 @@ public class Lab1 {
     
 
     public static void main(String[] args){
+        /*
 
         // 1. Creare profi cu toți constructorii
         Prof prof1 = new Prof(); // implicit
-        Prof prof2 = new Prof("Popescu", 80.5, 90.0f); // partial
+        Prof prof2 = new Prof("Popescu", 8.5, 90.0f); // partial
         Prof prof3 = new Prof("Ionescu", "Matematica"); // partial
-        Prof prof4 = new Prof("Georgescu", "Fizica", 60.0, 70.0f, (short)2, 25L); // full
+        Prof prof4 = new Prof("Georgescu", "Fizica", 60.0, 70.0f, (short)2, new long[]{25,43}); // full
         Prof prof5 = new Prof(prof4); // copiere
+        prof1.citireProf();
 
         // 2. Afișare după fiecare creare
         System.out.println("--- Prof1 (implicit) ---");
@@ -403,5 +425,16 @@ public class Lab1 {
                 System.out.println("Found a null entry, skipping.");
             }
         }
+
+        */
+
+
+        Prof profCitit = new Prof("Profesor");
+
+        profCitit.afisare();
+
+        profCitit.citireProf();
+
+        profCitit.inscrieProf("profcititsilamscris", profCitit);
     }
 }
