@@ -66,9 +66,7 @@ public class Lab1 {
             this.galagie = p.galagie;
             this.nrGrupe = p.nrGrupe;
             this.nrStudenti = new long[p.nrGrupe];
-            for(int i=0; i<p.nrGrupe; i++){
-                this.nrStudenti[i] = p.nrStudenti[i];
-            }
+            System.arraycopy(p.nrStudenti, 0, this.nrStudenti, 0, p.nrGrupe);
             profesori++;
         }
 

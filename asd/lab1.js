@@ -94,6 +94,7 @@
         left = mergeSort(arr.slice(0,mid))
         right = mergeSort(arr.slice(mid))
 
+        console.log("test")
         return merge(left,right)
 
     }
@@ -115,11 +116,11 @@
             }
         }
 
-        if(i!=0){
+        if(i < left.length){
             result.push(...left.slice(i))
         }
 
-        if (j != 0) {
+        if (j < right.length) {
             result.push(...right.slice(j))
         }
 
@@ -130,15 +131,15 @@
 
 
         let randomArray = []
-    for(let i = 0; i < 10; i++){
-        randomArray.push(Math.floor(Math.random() * 10) + 1)
-    }
+
+        for(let i = 0; i < 20; i++){
+            randomArray.push(Math.floor(Math.random()*100))
+        }
 
 
     console.log(randomArray)
 
     console.log(mergeSort(randomArray))
-
 
 
 
