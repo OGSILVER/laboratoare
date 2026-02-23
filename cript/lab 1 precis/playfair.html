@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playfair</title>
+    <style>
+        /* Styles copied from original file for the section */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; }
+        .info-box { background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .info-box p { margin: 5px 0; color: #1565C0; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; }
+        .input-group input:focus, .input-group textarea:focus { outline: none; border-color: #667eea; }
+        .input-group textarea { min-height: 100px; resize: vertical; font-family: monospace; }
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-encrypt { background: #667eea; color: white; }
+        .btn-encrypt:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-decrypt { background: #764ba2; color: white; }
+        .btn-decrypt:hover { background: #63408a; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4); }
+        .output { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; }
+        .output h3 { margin-bottom: 10px; color: #333; }
+        .output-text { font-family: monospace; font-size: 14px; line-height: 1.6; color: #495057; word-break: break-all; }
+        .debug-section { margin-top: 20px; padding: 20px; background: #fff9e6; border-radius: 8px; border: 2px solid #ffd700; }
+        .debug-section h3 { color: #d97706; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .debug-section h3::before { content: "🔍"; }
+        .matrix-table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .matrix-table th, .matrix-table td { border: 1px solid #ddd; padding: 8px 12px; text-align: center; font-family: monospace; font-size: 14px; }
+        .matrix-table th { background: #667eea; color: white; font-weight: 600; }
+        .matrix-table tr:nth-child(even) { background: #f8f9fa; }
+        .matrix-table tr:hover { background: #e9ecef; }
+        .step-by-step { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #10b981; }
+        .step-by-step h4 { color: #059669; margin-bottom: 10px; }
+        .step-by-step pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div id="playfair" class="cipher-section active">
+        <div class="info-box">
+            <p><strong>Cifru Playfair:</strong> Substitutie polialfabetică, litere majuscule și cifre, fără spații</p>
+        </div>
+        <div class="input-group">
+            <label>Text:</label>
+            <textarea id="play-text" placeholder="SKC YLQF YOG YV SKC NYOK NRVFLIX XM">THISISASECRETMESSAGE</textarea>
+        </div>
+        <div class="input-group">
+            <label>Cheie:</label>
+            <input type="text" id="play-key" placeholder="LORDPLAYFAIR" value="MONARCHY">
+        </div>
+        <div class="button-group">
+            <button class="btn-encrypt" onclick="playfairCrypt()">Criptează</button>
+            <button class="btn-decrypt" onclick="playfairDecrypt()">Decriptează</button>
+        </div>
+        <div class="output">
+            <h3>Rezultat:</h3>
+            <div id="play-output" class="output-text">-</div>
+        </div>
+        <div id="play-debug" class="debug-section" style="display:none;"></div>
+    </div>
+    
+    <script>
+        const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+        const ALPHABET_FULL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split('');
+
+        function removeRepeats(text) {
+            return [...new Set(text)].join('');
+        }
+
+        // ============ PLAYFAIR ============
+        function buildPlayfairMatrix(key, useNumbers) {
+            const base = useNumbers ? ALPHABET_FULL : ALPHABET.filter(c => c !== 'J');
+            const size = useNumbers ? 6 : 5;
+            key = removeRepeats(key.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+            
+            const remaining = base.filter(c => !key.includes(c));
+            const combined = (key + remaining.join('')).slice(0, size * size);
+            
+            const matrix = [];
+            for (let i = 0; i < size; i++) {
+                matrix.push(combined.slice(i * size, (i + 1) * size).split(''));
+            }
+            return matrix;
+        }
+
+        function findInMatrix(matrix, char) {
+            for (let i = 0; i < matrix.length; i++) {
+                for (let j = 0; j < matrix[i].length; j++) {
+                    if (matrix[i][j] == char) return [i, j];
+                }
+            }
+            return null;
+        }
+
+        function playfairProcess(text, key, decrypt = false) {
+            text = text.toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/J/g, 'I');
+            const hasNumbers = /\d/.test(text);
+            const matrix = buildPlayfairMatrix(key, hasNumbers);
+            const size = matrix.length;
+            const filler = hasNumbers ? '0' : 'X';
+            
+            let pairs = [];
+            let i = 0;
+            while (i < text.length) {
+                let a = text[i];
+                let b = (i + 1 < text.length) ? text[i + 1] : filler;
+                
+                if (a === b) {
+                    pairs.push([a, filler]);
+                    i++;
+                } else {
+                    pairs.push([a, b]);
+                    i += 2;
+                }
+            }
+            
+            let result = '';
+            for (let [a, b] of pairs) {
+                let [r1, c1] = findInMatrix(matrix, a);
+                let [r2, c2] = findInMatrix(matrix, b);
+                
+                if (r1 === r2) {
+                    if (decrypt) {
+                        result += matrix[r1][(c1 - 1 + size) % size];
+                        result += matrix[r2][(c2 - 1 + size) % size];
+                    } else {
+                        result += matrix[r1][(c1 + 1) % size];
+                        result += matrix[r2][(c2 + 1) % size];
+                    }
+                } else if (c1 === c2) {
+                    if (decrypt) {
+                        result += matrix[(r1 - 1 + size) % size][c1];
+                        result += matrix[(r2 - 1 + size) % size][c2];
+                    } else {
+                        result += matrix[(r1 + 1) % size][c1];
+                        result += matrix[(r2 + 1) % size][c2];
+                    }
+                } else {
+                    result += matrix[r1][c2];
+                    result += matrix[r2][c1];
+                }
+            }
+            return result;
+        }
+
+        function playfairCrypt() {
+            const text = document.getElementById('play-text').value;
+            const key = document.getElementById('play-key').value;
+            const result = playfairProcess(text, key, false);
+            document.getElementById('play-output').textContent = result;
+            showPlayfairDebug(text, key, false);
+        }
+
+        function playfairDecrypt() {
+            const text = document.getElementById('play-text').value;
+            const key = document.getElementById('play-key').value;
+            const result = playfairProcess(text, key, true);
+            document.getElementById('play-output').textContent = result;
+            showPlayfairDebug(text, key, true);
+        }
+
+        function showPlayfairDebug(text, key, decrypt) {
+            const debugDiv = document.getElementById('play-debug');
+            debugDiv.style.display = 'block';
+            
+            text = text.toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/J/g, 'I');
+            const hasNumbers = /\d/.test(text);
+            const matrix = buildPlayfairMatrix(key, hasNumbers);
+            const size = matrix.length;
+            
+            let html = `<h3>🔍 Matricea Playfair (${size}×${size})</h3>`;
+            html += '<table class="matrix-table">';
+            html += '<tr><th></th>';
+            for (let c of matrix[0]) html += `<th>${c}</th>`;
+            html += '</tr>';
+            
+            for (let r = 0; r < size; r++) {
+                html += `<tr><th>${matrix[r][0]}</th>`;
+                for (let c = 0; c < size; c++) {
+                    html += `<td>${matrix[r][c]}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            
+            // Show pairs
+            const filler = hasNumbers ? '0' : 'X';
+            let pairs = [];
+            let i = 0;
+            let originalText = text;
+            while (i < originalText.length) {
+                let a = originalText[i];
+                let b = (i + 1 < originalText.length) ? originalText[i + 1] : filler;
+                
+                if (a === b) {
+                    pairs.push([a, filler]);
+                    i++;
+                } else {
+                    pairs.push([a, b]);
+                    i += 2;
+                }
+            }
+            
+            html += '<div class="step-by-step">';
+            html += '<h4>Pasul 1: Împărțirea în perechi (bigrame)</h4>';
+            html += '<pre>';
+            html += pairs.map(p => p.join('')).join(' ');
+            html += '</pre></div>';
+            
+            html += '<div class="step-by-step">';
+            html += `<h4>Pasul 2: ${decrypt ? 'Decriptare' : 'Criptare'} perechi</h4>`;
+            html += '<pre>';
+            for (let [a, b] of pairs) {
+                let [r1, c1] = findInMatrix(matrix, a);
+                let [r2, c2] = findInMatrix(matrix, b);
+                
+                let res1, res2;
+                if (r1 === r2) {
+                    if (decrypt) {
+                        res1 = matrix[r1][(c1 - 1 + size) % size];
+                        res2 = matrix[r2][(c2 - 1 + size) % size];
+                        html += `${a}${b} → ${res1}${res2} (aceeași linie, mutăm la stânga)\n`;
+                    } else {
+                        res1 = matrix[r1][(c1 + 1) % size];
+                        res2 = matrix[r2][(c2 + 1) % size];
+                        html += `${a}${b} → ${res1}${res2} (aceeași linie, mutăm la dreapta)\n`;
+                    }
+                } else if (c1 === c2) {
+                    if (decrypt) {
+                        res1 = matrix[(r1 - 1 + size) % size][c1];
+                        res2 = matrix[(r2 - 1 + size) % size][c2];
+                        html += `${a}${b} → ${res1}${res2} (aceeași coloană, mutăm în sus)\n`;
+                    } else {
+                        res1 = matrix[(r1 + 1) % size][c1];
+                        res2 = matrix[(r2 + 1) % size][c2];
+                        html += `${a}${b} → ${res1}${res2} (aceeași coloană, mutăm în jos)\n`;
+                    }
+                } else {
+                    res1 = matrix[r1][c2];
+                    res2 = matrix[r2][c1];
+                    html += `${a}${b} → ${res1}${res2} (dreptunghi, schimbăm coloanele)\n`;
+                }
+            }
+            html += '</pre></div>';
+            
+            debugDiv.innerHTML = html;
+        }
+
+        // Run encrypt on load for initial content
+        window.onload = playfairCrypt;
+    </script>
+</body>
+</html>

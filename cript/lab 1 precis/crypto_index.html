@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Suite de Exerciții Criptografice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 40px);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-right: 1px solid #dee2e6;
+            text-decoration: none; /* For the <a> tag */
+            color: initial;
+            text-align: center;
+        }
+        .tab:hover { background: #e9ecef; }
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        .content-frame {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            min-height: 600px; /* Adjusted to take up space */
+        }
+        .content-wrapper {
+            flex-grow: 1;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Suite de Exerciții Criptografice</h1>
+            <p>Implementări ale algoritmilor clasici de criptare</p>
+        </div>
+        
+        <div class="tabs" id="cipher-tabs">
+            <a href="vigenere.html" class="tab active" target="contentFrame" data-name="vigenere">Vigenère</a>
+            <a href="playfair.html" class="tab" target="contentFrame" data-name="playfair">Playfair</a>
+            <a href="straddling.html" class="tab" target="contentFrame" data-name="straddling">Straddling</a> 
+            <a href="adfgx.html" class="tab" target="contentFrame" data-name="adfgx">ADFGX</a>
+        </div>
+        
+        <div class="content-wrapper">
+             <iframe id="contentFrame" name="contentFrame" src="vigenere.html" class="content-frame"></iframe>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('cipher-tabs').addEventListener('click', function(e) {
+            if (e.target.classList.contains('tab')) {
+                // Remove 'active' from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add 'active' to the clicked tab
+                e.target.classList.add('active');
+            }
+        });
+        
+        // Ensure the iframe loads the initial active tab content
+        document.getElementById('contentFrame').src = document.querySelector('.tab.active').href;
+    </script>
+</body>
+</html>

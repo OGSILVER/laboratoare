@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Numerical Methods</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+
+    <h1>Numerical methods for nonlinear equations</h1>
+
+    <!-- Function definition -->
+    <section class="card">
+      <h2>Function definition</h2>
+
+      <div class="row" id="interactiveOption">
+        <label>
+          <input type="radio" name="mode" value="collection" checked />
+          From collection
+        </label>
+        <label>
+          <input type="radio" name="mode" value="interactive" />
+          Interactive
+        </label>
+      </div>
+
+      <div class="row">
+        <label>f(x)</label>
+        <select id="functionOption">
+          <option>Select function</option>
+          <option>x² − 2</option>
+          <option>sin(x)</option>
+          <option>x·cos(x) − sin(x)</option>
+        </select>
+
+        <input
+          type="text"
+          placeholder="x*cos(x) - sin(x)"
+          id="fxInput"
+        />
+      </div>
+    </section>
+
+    <!-- Interval -->
+    <section class="card">
+      <h2>Interval limits</h2>
+      <div class="row">
+        <label>a</label>
+        <input type="number" class="graphLimit" value="-9" />
+        <label>b</label>
+        <input type="number" class="graphLimit" value="8" />
+      </div>
+    </section>
+
+    <!-- Method -->
+    <section class="card">
+      <h2>Calculation method</h2>
+      <div class="row">
+        <select id="aproxMethod">
+          <option>Bisectie</option>
+          <option>Secantelor</option>
+          <option>Coardelor</option>
+        </select>
+
+        <label>ε = 10⁻</label>
+        <input type="number" value="6" min="1" max="12" id="precision" />
+        <label>search range:</label>
+        <input type="number" class="searchRange" value="-10" />
+        <input type="number" class="searchRange" value="10" />
+        <input type="checkbox" name="searchType" id="searchType" checked /> Find all roots
+      </div>
+    </section>
+
+    <button class="execute">Execute</button>
+
+    <!-- Output -->
+    <section class="output">
+      <div class="chart-box">
+        <canvas id="myGraph"></canvas>
+      </div>
+
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>Root x</th>
+              <th>f(x)</th>
+              <th>Iterations</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="empty">No results yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

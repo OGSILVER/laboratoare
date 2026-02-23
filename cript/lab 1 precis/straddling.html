@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exerciții Criptografie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .input-group textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #667eea;
+            color: white;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        .output {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .output h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .output-text {
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #495057;
+            word-break: break-all;
+        }
+        
+        .debug-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff9e6;
+            border-radius: 8px;
+            border: 2px solid #ffd700;
+        }
+        
+        .debug-section h3 {
+            color: #d97706;
+            margin-bottom: 15px;
+        }
+        
+        .matrix-table {
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        
+        .matrix-table th,
+        .matrix-table td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .matrix-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .step-by-step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+        
+        .step-by-step h4 {
+            color: #059669;
+            margin-bottom: 10px;
+        }
+        
+        .step-by-step pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Straddling Checkerboard - ACTUALLY FIXED</h1>
+        </div>
+        
+        <div class="content">
+            <div class="input-group">
+                <label>Text:</label>
+                <textarea id="strad-text">the first few primes are 2, 3, 5 and 7</textarea>
+            </div>
+            <div class="input-group">
+                <label>Cheie Tabel:</label>
+                <input type="text" id="strad-key" value="89 IS PRIME">
+            </div>
+            <div class="input-group">
+                <label>Cheie Transpunere:</label>
+                <input type="text" id="strad-key2" value="MURPHY">
+            </div>
+            <div class="button-group">
+                <button onclick="straddlingCrypt()">Criptează</button>
+            </div>
+            <div class="output">
+                <h3>Rezultat:</h3>
+                <div id="strad-output" class="output-text">-</div>
+            </div>
+            <div id="strad-debug" class="debug-section" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function buildStraddlingTable(key) {
+            // For "89 IS PRIME" the order should be:
+            // Row 0: 8 9 _ E K L _ N O Q (blanks at positions 1,4,6 - not used, rest have: 8,9,E,K,L,N,O,Q)
+            // But we need to continue with remaining alphabet
+            
+            // Actually let's hardcode based on the image for "89 IS PRIME"
+            const table = {};
+            const reverseTable = {};
+            
+            // Row 0: positions with blanks at 1,4,6
+            // 0:8, 1:blank, 2:9, 3:blank, 4:blank, 5:I, 6:blank, 7:S, 8:P, 9:R
+            // Wait, let me re-read the image...
+            
+            // From your description: row 0 should be "8 9 _ E K L _ N O Q _ T U"
+            // That's 0:8, 1:9, 2:blank, 3:E, 4:K, 5:L, 6:blank, 7:N, 8:O, 9:Q
+            // No wait, blanks are at 1,4,6 so:
+            // 0:8, 1:blank, 2:9, 3:E, 4:blank, 5:K, 6:blank, 7:L, 8:N, 9:O
+            // Fuck, let me just extract from key properly
+            
+            const keyUpper = key.toUpperCase();
+            let uniqueChars = [];
+            let seen = new Set();
+            
+            for (let char of keyUpper) {
+                if (/[A-Z0-9]/.test(char) && !seen.has(char)) {
+                    uniqueChars.push(char);
+                    seen.add(char);
+                }
+            }
+            
+            // "89 IS PRIME" gives: 8,9,I,S,P,R,M,E
+            // Then add remaining: A,B,C,D,F,G,H,J,K,L,N,O,Q,T,U,V,W,X,Y,Z,0,1,2,3,4,5,6,7
+            const fullAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split('');
+            for (let char of fullAlphabet) {
+                if (!seen.has(char)) {
+                    uniqueChars.push(char);
+                }
+            }
+            
+            const blankPositions = [1, 4, 6];
+            let idx = 0;
+            
+            // Row 0 - single digit codes (skip blanks at 1,4,6)
+            for (let c = 0; c < 10; c++) {
+                if (blankPositions.includes(c)) {
+                    table['0_' + c] = null;
+                } else {
+                    table['0_' + c] = uniqueChars[idx];
+                    reverseTable[uniqueChars[idx]] = c.toString();
+                    idx++;
+                }
+            }
+            
+            // Row 1: E [space] A B C D F G H J
+            table['1_0'] = uniqueChars[idx]; // E
+            reverseTable[uniqueChars[idx]] = '10'; // E = 10
+            idx++;
+            
+            table['1_1'] = ' '; // space
+            reverseTable[' '] = '11';
+            
+            for (let c = 2; c < 10; c++) {
+                table['1_' + c] = uniqueChars[idx];
+                reverseTable[uniqueChars[idx]] = '1' + c;
+                idx++;
+            }
+            
+            // Rows 4 and 6
+            for (let row of [4, 6]) {
+                for (let c = 0; c < 10; c++) {
+                    if (idx < uniqueChars.length) {
+                        table[row + '_' + c] = uniqueChars[idx];
+                        reverseTable[uniqueChars[idx]] = row.toString() + c.toString();
+                        idx++;
+                    }
+                }
+            }
+            
+            return { table, reverseTable };
+        }
+
+        function straddlingEncrypt(text, key, transpKey) {
+            const { reverseTable } = buildStraddlingTable(key);
+            
+            // Encode and keep track of individual codes (not pairs!)
+            const codes = [];
+            for (let char of text.toUpperCase()) {
+                if (reverseTable[char]) {
+                    codes.push(reverseTable[char]);
+                } else if (char === ' ') {
+                    codes.push('11');
+                }
+            }
+            
+            const encoded = codes.join('');
+            
+            if (transpKey && transpKey.trim()) {
+                const cleanKey = transpKey.toUpperCase().replace(/[^A-Z]/g, '');
+                const keyChars = cleanKey.split('');
+                const cols = keyChars.length;
+                const rows = Math.ceil(codes.length / cols);
+                
+                // Fill grid LEFT→RIGHT, TOP→BOTTOM with CODES (not pairs!)
+                const grid = Array(rows).fill(null).map(() => Array(cols).fill(''));
+                let codeIdx = 0;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        grid[r][c] = codes[codeIdx++] || '';
+                    }
+                }
+                
+                // Get alphabetical order
+                const keyOrder = keyChars.map((char, idx) => ({ char, idx }))
+                    .sort((a, b) => a.char.localeCompare(b.char));
+                
+                // Read columns in alphabetical order
+                let result = '';
+                for (let { idx: colIdx } of keyOrder) {
+                    for (let r = 0; r < rows; r++) {
+                        result += grid[r][colIdx];
+                    }
+                }
+                
+                return result;
+            }
+            
+            return encoded;
+        }
+
+        function straddlingCrypt() {
+            const text = document.getElementById('strad-text').value;
+            const key = document.getElementById('strad-key').value;
+            const key2 = document.getElementById('strad-key2').value;
+            const result = straddlingEncrypt(text, key, key2);
+            document.getElementById('strad-output').textContent = result;
+            showDebug(text, key, key2);
+        }
+
+        function showDebug(text, key, transpKey) {
+            const debugDiv = document.getElementById('strad-debug');
+            debugDiv.style.display = 'block';
+            
+            const { table, reverseTable } = buildStraddlingTable(key);
+            
+            let html = '<h3>🔍 Checkerboard Table</h3>';
+            html += '<table class="matrix-table">';
+            html += '<tr><th></th>';
+            for (let i = 0; i < 10; i++) html += `<th>${i}</th>`;
+            html += '</tr>';
+            
+            // Row 0
+            html += '<tr><th></th>';
+            for (let c = 0; c < 10; c++) {
+                const val = table['0_' + c];
+                if (val === null) {
+                    html += '<td style="background:#f0f0f0;"></td>';
+                } else {
+                    html += `<td>${val}</td>`;
+                }
+            }
+            html += '</tr>';
+            
+            // Rows 1, 4, 6
+            for (let row of [1, 4, 6]) {
+                html += `<tr><th>${row}</th>`;
+                for (let c = 0; c < 10; c++) {
+                    html += `<td>${table[row + '_' + c] || ''}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            
+            // Encode
+            const codes = [];
+            html += '<div class="step-by-step"><h4>Encoding:</h4><pre>';
+            
+            for (let char of text.toUpperCase()) {
+                const code = reverseTable[char] || (char === ' ' ? '11' : '');
+                if (code) {
+                    codes.push(code);
+                    html += `'${char}' → ${code}\n`;
+                }
+            }
+            
+            const encoded = codes.join('');
+            html += `\nEncoded: ${encoded}</pre></div>`;
+            
+            // Transposition
+            if (transpKey && transpKey.trim()) {
+                const cleanKey = transpKey.toUpperCase().replace(/[^A-Z]/g, '');
+                const keyChars = cleanKey.split('');
+                const cols = keyChars.length;
+                const rows = Math.ceil(codes.length / cols);
+                
+                const grid = Array(rows).fill(null).map(() => Array(cols).fill(''));
+                let codeIdx = 0;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        grid[r][c] = codes[codeIdx++] || '';
+                    }
+                }
+                
+                const keyOrder = keyChars.map((char, idx) => ({ char, idx }))
+                    .sort((a, b) => a.char.localeCompare(b.char));
+                
+                const ranks = Array(cols);
+                keyOrder.forEach(({ idx }, rank) => {
+                    ranks[idx] = rank + 1;
+                });
+                
+                html += '<h3>🔍 Transposition Grid</h3>';
+                html += '<table class="matrix-table">';
+                
+                // Rank row
+                html += '<tr><th></th>';
+                for (let i = 0; i < cols; i++) {
+                    html += `<th>${ranks[i]}</th>`;
+                }
+                html += '</tr>';
+                
+                // Key letter row
+                html += '<tr><th></th>';
+                for (let i = 0; i < cols; i++) {
+                    html += `<th>${keyChars[i]}</th>`;
+                }
+                html += '</tr>';
+                
+                // Data rows
+                for (let r = 0; r < rows; r++) {
+                    html += '<tr><th></th>';
+                    for (let c = 0; c < cols; c++) {
+                        html += `<td>${grid[r][c]}</td>`;
+                    }
+                    html += '</tr>';
+                }
+                html += '</table>';
+                
+                html += '<div class="step-by-step"><h4>Read columns alphabetically:</h4><pre>';
+                for (let { char, idx: colIdx } of keyOrder) {
+                    let colData = '';
+                    for (let r = 0; r < rows; r++) {
+                        colData += grid[r][colIdx];
+                    }
+                    html += `${char}: ${colData}\n`;
+                }
+                html += '</pre></div>';
+            }
+            
+            debugDiv.innerHTML = html;
+        }
+
+        window.addEventListener('load', straddlingCrypt);
+    </script>
+</body>
+</html>

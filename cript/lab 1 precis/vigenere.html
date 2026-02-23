@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigenère</title>
+    <style>
+        /* Styles copied from original file for the section */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; }
+        .info-box { background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .info-box p { margin: 5px 0; color: #1565C0; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; }
+        .input-group input:focus, .input-group textarea:focus { outline: none; border-color: #667eea; }
+        .input-group textarea { min-height: 100px; resize: vertical; font-family: monospace; }
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-encrypt { background: #667eea; color: white; }
+        .btn-encrypt:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-decrypt { background: #764ba2; color: white; }
+        .btn-decrypt:hover { background: #63408a; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4); }
+        .output { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; }
+        .output h3 { margin-bottom: 10px; color: #333; }
+        .output-text { font-family: monospace; font-size: 14px; line-height: 1.6; color: #495057; word-break: break-all; }
+        .debug-section { margin-top: 20px; padding: 20px; background: #fff9e6; border-radius: 8px; border: 2px solid #ffd700; }
+        .debug-section h3 { color: #d97706; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .debug-section h3::before { content: "🔍"; }
+        .matrix-table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .matrix-table th, .matrix-table td { border: 1px solid #ddd; padding: 8px 12px; text-align: center; font-family: monospace; font-size: 14px; }
+        .matrix-table th { background: #667eea; color: white; font-weight: 600; }
+        .matrix-table tr:nth-child(even) { background: #f8f9fa; }
+        .matrix-table tr:hover { background: #e9ecef; }
+        .step-by-step { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #10b981; }
+        .step-by-step h4 { color: #059669; margin-bottom: 10px; }
+        .step-by-step pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div id="vigenere" class="cipher-section active">
+        <div class="info-box">
+            <p><strong>Cifru Vigenère:</strong> Substitutie polialfabetică, doar litere majuscule, fără spații</p>
+        </div>
+        <div class="input-group">
+            <label>Text:</label>
+            <textarea id="vig-text" placeholder="KLTMJDQSXFXYHLWLTMEZMNTPYJ">WEAREMEETINGATMIDNIGHTFORTHEDANCE</textarea>
+        </div>
+        <div class="input-group">
+            <label>Cheie:</label>
+            <input type="text" id="vig-key" placeholder="ALBERTI" value="DECEPTIVE">
+        </div>
+        <div class="button-group">
+            <button class="btn-encrypt" onclick="vigenereCrypt()">Criptează</button>
+            <button class="btn-decrypt" onclick="vigenereDecrypt()">Decriptează</button>
+        </div>
+        <div class="output">
+            <h3>Rezultat:</h3>
+            <div id="vig-output" class="output-text">-</div>
+        </div>
+        <div id="vig-debug" class="debug-section" style="display:none;"></div>
+    </div>
+
+    <script>
+        // Common utilities
+        const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+        
+        // ============ VIGENÈRE ============
+        function vigenereProcess(text, key, decrypt = false) {
+            text = text.toUpperCase().replace(/[^A-Z]/g, '');
+            key = key.toUpperCase().replace(/[^A-Z]/g, '');
+            
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                let textIdx = ALPHABET.indexOf(text[i]);
+                let keyIdx = ALPHABET.indexOf(key[i % key.length]);
+                
+                let newIdx = decrypt ? 
+                    (textIdx - keyIdx + 26) % 26 : 
+                    (textIdx + keyIdx) % 26;
+                    
+                result += ALPHABET[newIdx];
+            }
+            return result;
+        }
+
+        function vigenereCrypt() {
+            const text = document.getElementById('vig-text').value;
+            const key = document.getElementById('vig-key').value;
+            const result = vigenereProcess(text, key, false);
+            document.getElementById('vig-output').textContent = result;
+            showVigenereDebug(text, key, false);
+        }
+
+        function vigenereDecrypt() {
+            const text = document.getElementById('vig-text').value;
+            const key = document.getElementById('vig-key').value;
+            const result = vigenereProcess(text, key, true);
+            document.getElementById('vig-output').textContent = result;
+            showVigenereDebug(text, key, true);
+        }
+
+        function showVigenereDebug(text, key, decrypt) {
+            const debugDiv = document.getElementById('vig-debug');
+            debugDiv.style.display = 'block';
+            
+            text = text.toUpperCase().replace(/[^A-Z]/g, '');
+            key = key.toUpperCase().replace(/[^A-Z]/g, '');
+            
+            // Build Vigenere square (Simplified/omitted for space if needed, keeping per original for now)
+            let squareHTML = '<h3>🔍 Tabelul Vigenère (26×26)</h3>';
+            squareHTML += '<table class="matrix-table"><tr><th></th>';
+            for (let c of ALPHABET) squareHTML += `<th>${c}</th>`;
+            squareHTML += '</tr>';
+            
+            for (let i = 0; i < 26; i++) {
+                squareHTML += `<tr><th>${ALPHABET[i]}</th>`;
+                for (let j = 0; j < 26; j++) {
+                    squareHTML += `<td>${ALPHABET[(i + j) % 26]}</td>`;
+                }
+                squareHTML += '</tr>';
+            }
+            squareHTML += '</table>';
+            
+            // Show step by step
+            let extendedKey = '';
+            for (let i = 0; i < text.length; i++) {
+                extendedKey += key[i % key.length];
+            }
+            
+            squareHTML += '<div class="step-by-step">';
+            squareHTML += `<h4>Pasul 1: Extinderea cheii</h4>`;
+            squareHTML += `<pre>Text:  ${text.split('').join(' ')}\nCheie: ${extendedKey.split('').join(' ')}</pre>`;
+            squareHTML += '</div>';
+            
+            squareHTML += '<div class="step-by-step">';
+            squareHTML += `<h4>Pasul 2: ${decrypt ? 'Decriptare' : 'Criptare'}</h4>`;
+            squareHTML += '<pre>';
+            for (let i = 0; i < text.length; i++) {
+                const textChar = text[i];
+                const keyChar = extendedKey[i];
+                const textIdx = ALPHABET.indexOf(textChar);
+                const keyIdx = ALPHABET.indexOf(keyChar);
+                const newIdx = decrypt ? 
+                    (textIdx - keyIdx + 26) % 26 : 
+                    (textIdx + keyIdx) % 26;
+                const resultChar = ALPHABET[newIdx];
+                
+                if (decrypt) {
+                    squareHTML += `${textChar} - ${keyChar} = ${resultChar} (${textIdx} - ${keyIdx} mod 26 = ${newIdx})\n`;
+                } else {
+                    squareHTML += `${textChar} + ${keyChar} = ${resultChar} (${textIdx} + ${keyIdx} mod 26 = ${newIdx})\n`;
+                }
+            }
+            squareHTML += '</pre></div>';
+            
+            debugDiv.innerHTML = squareHTML;
+        }
+
+        // Run encrypt on load for initial content
+        window.onload = vigenereCrypt;
+    </script>
+</body>
+</html>

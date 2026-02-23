@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style/style.css">
+</head>
+<body>
+    <div class="arrangement">
+
+        <div class="menu">
+            <div style="margin: 12px;">
+                <div class="mainText">Meniu</div>
+                <a href="vigenere.html" class="secondaryText">Algoritmul lui Vigenere</a>
+                <a href="playfair.html" class="secondaryText">Algoritmul lui Playfair</a>
+                <a href="adfgx.html" class="secondaryText">Algoritmul lui ADFGX</a>
+                <a href="straddling.html" class="secondaryText">Algoritmul lui Straddling Checkerboard</a>
+            </div>
+            <div id="descriptionBox" class="descText">Cifru cu substitutie monoalfabetica: Acest cifru permite doar litere cu majuscule, cu spatii</div>
+        </div>
+
+        <div class="content">
+            <div class="container">
+                <div class="mainText">Algoritmul de criptare</div>
+                <div class="mainText">Straddling Checkerboard</div>
+                <div class="inputContainer">
+                    <div class="secondaryText">Introdu textul tau aici:</div>
+                    <input id="inputText">
+                </div>
+                <div class="inputContainer">
+                    <div class="secondaryText">Introdu cheia ta aici:</div>
+                    <input id="inputKey">
+                </div>
+                <div class="inputContainer">
+                    <button id="criptButton">Cripteaza</button>
+                    <button id="decriptButton">Decripteaza</button>
+                </div>
+            </div>
+            <div class="outputContainer">
+                <div class="outputText" style="margin-right: 10px;">Raspunsul tau aici: </div>
+                <div class="outputText" id="outputText"></div>
+            </div>
+        </div>
+        <br>
+
+    </div>
+</div>
+<script src="JS/js-straddling.js"></script>
+</body>
+</html>

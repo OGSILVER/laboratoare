@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADFGX</title>
+    <style>
+        /* Styles copied from original file for the section */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; }
+        .info-box { background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .info-box p { margin: 5px 0; color: #1565C0; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; }
+        .input-group input:focus, .input-group textarea:focus { outline: none; border-color: #667eea; }
+        .input-group textarea { min-height: 100px; resize: vertical; font-family: monospace; }
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-encrypt { background: #667eea; color: white; }
+        .btn-encrypt:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-decrypt { background: #764ba2; color: white; }
+        .btn-decrypt:hover { background: #63408a; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4); }
+        .output { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; }
+        .output h3 { margin-bottom: 10px; color: #333; }
+        .output-text { font-family: monospace; font-size: 14px; line-height: 1.6; color: #495057; word-break: break-all; }
+        .debug-section { margin-top: 20px; padding: 20px; background: #fff9e6; border-radius: 8px; border: 2px solid #ffd700; }
+        .debug-section h3 { color: #d97706; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .debug-section h3::before { content: "🔍"; }
+        .matrix-table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .matrix-table th, .matrix-table td { border: 1px solid #ddd; padding: 8px 12px; text-align: center; font-family: monospace; font-size: 14px; }
+        .matrix-table th { background: #667eea; color: white; font-weight: 600; }
+        .matrix-table tr:nth-child(even) { background: #f8f9fa; }
+        .matrix-table tr:hover { background: #e9ecef; }
+        .step-by-step { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #10b981; }
+        .step-by-step h4 { color: #059669; margin-bottom: 10px; }
+        .step-by-step pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div id="adfgx" class="cipher-section active">
+        <div class="info-box">
+            <p><strong>Cifru ADFGX:</strong> Cifru mixt cu substitutie și permutare, doar litere majuscule</p>
+        </div>
+        <div class="input-group">
+            <label>Text:</label>
+            <textarea id="adfgx-text" placeholder="clocks will run more quickly during free time">CLOCKS WILL RUN MORE QUICKLY DURING FREE TIME</textarea>
+        </div>
+        <div class="input-group">
+            <label>Cheie Polybius:</label>
+            <input type="text" id="adfgx-key1" placeholder="MONKEYS" value="PHRASE">
+        </div>
+        <div class="input-group">
+            <label>Cheie Permutare:</label>
+            <input type="text" id="adfgx-key2" placeholder="ZEBRAS" value="CRYPTO">
+        </div>
+        <div class="button-group">
+            <button class="btn-encrypt" onclick="adfgxCrypt()">Criptează</button>
+            <button class="btn-decrypt" onclick="adfgxDecrypt()">Decriptează</button>
+        </div>
+        <div class="output">
+            <h3>Rezultat:</h3>
+            <div id="adfgx-output" class="output-text">-</div>
+        </div>
+        <div id="adfgx-debug" class="debug-section" style="display:none;"></div>
+    </div>
+
+    <script>
+        const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+
+        function removeRepeats(text) {
+            return [...new Set(text)].join('');
+        }
+
+        // ============ ADFGX ============
+        function buildADFGXMatrix(key) {
+            const ADFGX = ['A', 'D', 'F', 'G', 'X'];
+            key = removeRepeats(key.toUpperCase().replace(/[^A-Z]/g, ''));
+            const base = ALPHABET.filter(c => c !== 'J');
+            const remaining = base.filter(c => !key.includes(c));
+            const combined = key + remaining.join('');
+            
+            const matrix = {};
+            let idx = 0;
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) {
+                    matrix[combined[idx]] = ADFGX[r] + ADFGX[c];
+                    idx++;
+                }
+            }
+            
+            return { matrix, reverse: Object.fromEntries(Object.entries(matrix).map(([k, v]) => [v, k])) };
+        }
+
+        function adfgxEncrypt(text, polybius, perm) {
+            text = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+            const { matrix } = buildADFGXMatrix(polybius);
+            
+            let intermediate = '';
+            for (let char of text) {
+                intermediate += matrix[char] || '';
+            }
+            
+            perm = perm.toUpperCase();
+            const cols = perm.length;
+            const rows = Math.ceil(intermediate.length / cols);
+            
+            const grid = Array(rows).fill(null).map(() => Array(cols).fill(''));
+            let idx = 0;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    grid[r][c] = intermediate[idx++] || '';
+                }
+            }
+            
+            const order = perm.split('').map((c, i) => ({ char: c, idx: i }))
+                .sort((a, b) => a.char.localeCompare(b.char));
+            
+            let result = '';
+            for (let { idx: colIdx } of order) {
+                for (let r = 0; r < rows; r++) {
+                    result += grid[r][colIdx];
+                }
+            }
+            
+            return result.replace(/\s+/g, '');
+        }
+
+        function adfgxDecrypt(text, polybius, perm) {
+            text = text.replace(/\s+/g, '');
+            const { reverse } = buildADFGXMatrix(polybius);
+            
+            perm = perm.toUpperCase();
+            const cols = perm.length;
+            const rows = Math.ceil(text.length / cols);
+            
+            const order = perm.split('').map((c, i) => ({ char: c, idx: i }))
+                .sort((a, b) => a.char.localeCompare(b.char));
+            
+            const grid = Array(rows).fill(null).map(() => Array(cols).fill(''));
+            let idx = 0;
+            for (let { idx: colIdx } of order) {
+                for (let r = 0; r < rows; r++) {
+                    grid[r][colIdx] = text[idx++] || '';
+                }
+            }
+            
+            let intermediate = '';
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    intermediate += grid[r][c];
+                }
+            }
+            
+            let result = '';
+            for (let i = 0; i < intermediate.length; i += 2) {
+                const pair = intermediate.slice(i, i + 2);
+                result += reverse[pair] || '';
+            }
+            
+            return result;
+        }
+
+        function adfgxCrypt() {
+            const text = document.getElementById('adfgx-text').value;
+            const key1 = document.getElementById('adfgx-key1').value;
+            const key2 = document.getElementById('adfgx-key2').value;
+            const result = adfgxEncrypt(text, key1, key2);
+            document.getElementById('adfgx-output').textContent = result;
+            showADFGXDebug(text, key1, key2, false);
+        }
+
+        function adfgxDecrypt() {
+            const text = document.getElementById('adfgx-text').value;
+            const key1 = document.getElementById('adfgx-key1').value;
+            const key2 = document.getElementById('adfgx-key2').value;
+            const result = adfgxDecrypt(text, key1, key2);
+            document.getElementById('adfgx-output').textContent = result;
+            showADFGXDebug(text, key1, key2, true);
+        }
+
+        function showADFGXDebug(text, polybius, perm, decrypt) {
+            const debugDiv = document.getElementById('adfgx-debug');
+            debugDiv.style.display = 'block';
+            
+            const ADFGX = ['A', 'D', 'F', 'G', 'X'];
+            const { matrix, reverse } = buildADFGXMatrix(polybius);
+            
+            // Show Polybius Square
+            let html = '<h3>🔍 Pătratul Polybius ADFGX (5×5)</h3>';
+            html += '<table class="matrix-table">';
+            html += '<tr><th></th>';
+            for (let c of ADFGX) html += `<th>${c}</th>`;
+            html += '</tr>';
+            
+            polybius = removeRepeats(polybius.toUpperCase().replace(/[^A-Z]/g, ''));
+            const base = ALPHABET.filter(c => c !== 'J');
+            const remaining = base.filter(c => !polybius.includes(c));
+            const combined = polybius + remaining.join('');
+            
+            let idx = 0;
+            for (let r = 0; r < 5; r++) {
+                html += `<tr><th>${ADFGX[r]}</th>`;
+                for (let c = 0; c < 5; c++) {
+                    html += `<td>${combined[idx++]}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            
+            if (!decrypt) {
+                text = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+                
+                // Step 1: Substitution
+                html += '<div class="step-by-step">';
+                html += '<h4>Pasul 1: Substituție (folosind pătratul Polybius)</h4>';
+                html += '<pre>';
+                let intermediate = '';
+                for (let char of text) {
+                    const code = matrix[char] || '';
+                    intermediate += code;
+                    html += `${char} → ${code}\n`;
+                }
+                html += `\nText intermediar: ${intermediate}`;
+                html += '</pre></div>';
+                
+                // Step 2: Transposition
+                html += '<div class="step-by-step">';
+                html += '<h4>Pasul 2: Permutare (transpunere coloanară)</h4>';
+                
+                perm = perm.toUpperCase();
+                const cols = perm.length;
+                const rows = Math.ceil(intermediate.length / cols);
+                
+                // Show the grid
+                html += '<p><strong>Grila de transpunere:</strong></p>';
+                html += '<table class="matrix-table">';
+                html += '<tr><th></th>';
+                for (let i = 0; i < perm.length; i++) {
+                    html += `<th>${perm[i]}</th>`;
+                }
+                html += '</tr>';
+                
+                const grid = Array(rows).fill(null).map(() => Array(cols).fill(''));
+                let gridIdx = 0;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        grid[r][c] = intermediate[gridIdx++] || '';
+                    }
+                }
+                
+                for (let r = 0; r < rows; r++) {
+                    html += `<tr><th>${r + 1}</th>`;
+                    for (let c = 0; c < cols; c++) {
+                        html += `<td>${grid[r][c]}</td>`;
+                    }
+                    html += '</tr>';
+                }
+                html += '</table>';
+                
+                // Show reading order
+                const order = perm.split('').map((c, i) => ({ char: c, idx: i }))
+                    .sort((a, b) => a.char.localeCompare(b.char));
+                
+                html += '<p><strong>Ordine alfabetică a coloanelor:</strong></p>';
+                html += '<pre>';
+                for (let { char, idx } of order) {
+                    html += `${char} `;
+                }
+                html += '\n\nCitim pe coloane în această ordine:\n';
+                
+                for (let { char, idx: colIdx } of order) {
+                    let colData = '';
+                    for (let r = 0; r < rows; r++) {
+                        colData += grid[r][colIdx];
+                    }
+                    html += `Coloana ${char}: ${colData}\n`;
+                }
+                html += '</pre></div>';
+                
+            } else {
+                // Decryption steps
+                text = text.replace(/\s+/g, '');
+                
+                html += '<div class="step-by-step">';
+                html += '<h4>Pasul 1: Reconstruirea grilei de transpunere</h4>';
+                
+                perm = perm.toUpperCase();
+                const cols = perm.length;
+                const rows = Math.ceil(text.length / cols);
+                
+                const order = perm.split('').map((c, i) => ({ char: c, idx: i }))
+                    .sort((a, b) => a.char.localeCompare(b.char));
+                
+                const grid = Array(rows).fill(null).map(() => Array(cols).fill(''));
+                let textIdx = 0;
+                for (let { idx: colIdx } of order) {
+                    for (let r = 0; r < rows; r++) {
+                        grid[r][colIdx] = text[textIdx++] || '';
+                    }
+                }
+                
+                html += '<table class="matrix-table">';
+                html += '<tr><th></th>';
+                for (let i = 0; i < perm.length; i++) {
+                    html += `<th>${perm[i]}</th>`;
+                }
+                html += '</tr>';
+                
+                for (let r = 0; r < rows; r++) {
+                    html += `<tr><th>${r + 1}</th>`;
+                    for (let c = 0; c < cols; c++) {
+                        html += `<td>${grid[r][c]}</td>`;
+                    }
+                    html += '</tr>';
+                }
+                html += '</table>';
+                
+                let intermediate = '';
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        intermediate += grid[r][c];
+                    }
+                }
+                html += `<pre>Text intermediar: ${intermediate}</pre>`;
+                html += '</div>';
+                
+                // Step 2: Substitution
+                html += '<div class="step-by-step">';
+                html += '<h4>Pasul 2: Desubstituție (folosind pătratul Polybius)</h4>';
+                html += '<pre>';
+                for (let i = 0; i < intermediate.length; i += 2) {
+                    const pair = intermediate.slice(i, i + 2);
+                    const char = reverse[pair] || '?';
+                    html += `${pair} → ${char}\n`;
+                }
+                html += '</pre></div>';
+            }
+            
+            debugDiv.innerHTML = html;
+        }
+
+        // Run encrypt on load for initial content
+        window.onload = adfgxCrypt;
+    </script>
+</body>
+</html>
