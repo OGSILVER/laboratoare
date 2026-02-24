@@ -18,21 +18,17 @@
 
 
     function insertionSort(arr) {
-        let mark = 1
+
 
             for(let i = 1; i < arr.length; i++){
                 if(arr[i]>arr[i-1]){
-                    mark++
-                    console.log(arr[i] + " > " + arr[i-1])
+                    continue
                 }else{
                     for(let j = i; j != 0; j--){
                         if(arr[j] < arr[j-1]){
-                            console.log(arr[j] + " < " + arr[j-1])
                             let temp = arr[j-1]
                             arr[j-1] = arr[j]
-                            arr[j] = temp
-                            console.log(arr)
-                            
+                            arr[j] = temp                            
                         }
                     }
                 }
@@ -145,7 +141,11 @@
 
     console.log(randomArray)
 
+<<<<<<< HEAD
     console.log(binarySearch(randomArray))
+=======
+    console.log(insertionSort(randomArray))
+>>>>>>> refs/remotes/origin/master
 
 
 

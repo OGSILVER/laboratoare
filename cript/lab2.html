@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Cipher Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        class StreamCipherTool {
+            constructor() {
+                this.cipher = 'rc4';
+                this.mode = 'encrypt';
+                this.input = '';
+                this.output = '';
+                this.key = '';
+                this.iv = '';
+                this.error = '';
+                this.outputFormat = 'hex';
+            }
+
+            // Convert string to binary array
+            stringToBinary(str) {
+                var result = [];
+                for (var i = 0; i < str.length; i++) {
+                    var byte = str.charCodeAt(i);
+                    for (var j = 7; j >= 0; j--) {
+                        result.push((byte >> j) & 1);
+                    }
+                }
+                return result;
+            }
+
+            // Convert binary array to string
+            binaryToString(bits) {
+                var result = '';
+                for (var i = 0; i < bits.length; i += 8) {
+                    var byte = 0;
+                    for (var j = 0; j < 8 && i + j < bits.length; j++) {
+                        byte = (byte << 1) | bits[i + j];
+                    }
+                    result += String.fromCharCode(byte);
+                }
+                return result;
+            }
+
+            // Convert hex string to binary array
+            hexToBinary(hex) {
+                var result = [];
+                for (var i = 0; i < hex.length; i += 2) {
+                    var byte = parseInt(hex.substr(i, 2), 16);
+                    for (var j = 7; j >= 0; j--) {
+                        result.push((byte >> j) & 1);
+                    }
+                }
+                return result;
+            }
+
+            // Convert binary array to hex string
+            binaryToHex(bits) {
+                var result = '';
+                for (var i = 0; i < bits.length; i += 8) {
+                    var byte = 0;
+                    for (var j = 0; j < 8 && i + j < bits.length; j++) {
+                        byte = (byte << 1) | bits[i + j];
+                    }
+                    result += ('0' + byte.toString(16)).slice(-2);
+                }
+                return result.toUpperCase();
+            }
+
+            // A5/1 Stream Cipher
+            a51Cipher(text, key, isDecrypt) {
+                if (!key) throw new Error('Key is required (64-bit hex string expected)');
+                
+                // Parse key as hex
+                var keyBits = this.hexToBinary(key.replace(/[^0-9A-Fa-f]/g, ''));
+                if (keyBits.length < 64) {
+                    throw new Error('Key must be at least 64 bits (16 hex characters)');
+                }
+                keyBits = keyBits.slice(0, 64);
+
+                // Initialize LFSRs
+                var r1 = keyBits.slice(0, 19);
+                var r2 = keyBits.slice(19, 41);
+                var r3 = keyBits.slice(41, 64);
+
+                // LFSR clocking functions
+                function clockR1(reg) {
+                    var feedback = reg[18] ^ reg[17] ^ reg[16] ^ reg[13];
+                    reg.unshift(feedback);
+                    reg.pop();
+                }
+
+                function clockR2(reg) {
+                    var feedback = reg[21] ^ reg[20];
+                    reg.unshift(feedback);
+                    reg.pop();
+                }
+
+                function clockR3(reg) {
+                    var feedback = reg[22] ^ reg[21] ^ reg[20] ^ reg[7];
+                    reg.unshift(feedback);
+                    reg.pop();
+                }
+
+                // Majority function
+                function majority(a, b, c) {
+                    return (a & b) | (a & c) | (b & c);
+                }
+
+                // Generate keystream
+                var inputBits = isDecrypt ? this.hexToBinary(text.replace(/[^0-9A-Fa-f]/g, '')) : this.stringToBinary(text);
+                var keystream = [];
+
+                for (var i = 0; i < inputBits.length; i++) {
+                    var maj = majority(r1[8], r2[10], r3[10]);
+                    
+                    if (r1[8] === maj) clockR1(r1);
+                    if (r2[10] === maj) clockR2(r2);
+                    if (r3[10] === maj) clockR3(r3);
+
+                    keystream.push(r1[18] ^ r2[21] ^ r3[22]);
+                }
+
+                // XOR with input
+                var outputBits = [];
+                for (var i = 0; i < inputBits.length; i++) {
+                    outputBits.push(inputBits[i] ^ keystream[i]);
+                }
+
+                return isDecrypt ? this.binaryToString(outputBits) : this.binaryToHex(outputBits);
+            }
+
+            // RC4 Stream Cipher
+            rc4Cipher(text, key, isDecrypt) {
+                if (!key) throw new Error('Key is required');
+
+                // Initialize S-box
+                var S = [];
+                for (var i = 0; i < 256; i++) {
+                    S[i] = i;
+                }
+
+                // Key-scheduling algorithm (KSA)
+                var keyBytes = [];
+                for (var i = 0; i < key.length; i++) {
+                    keyBytes.push(key.charCodeAt(i));
+                }
+
+                var j = 0;
+                for (var i = 0; i < 256; i++) {
+                    j = (j + S[i] + keyBytes[i % keyBytes.length]) % 256;
+                    var temp = S[i];
+                    S[i] = S[j];
+                    S[j] = temp;
+                }
+
+                // Pseudo-random generation algorithm (PRGA)
+                var inputBytes = [];
+                if (isDecrypt) {
+                    var hexStr = text.replace(/[^0-9A-Fa-f]/g, '');
+                    for (var i = 0; i < hexStr.length; i += 2) {
+                        inputBytes.push(parseInt(hexStr.substr(i, 2), 16));
+                    }
+                } else {
+                    for (var i = 0; i < text.length; i++) {
+                        inputBytes.push(text.charCodeAt(i));
+                    }
+                }
+
+                var i = 0;
+                j = 0;
+                var outputBytes = [];
+
+                for (var k = 0; k < inputBytes.length; k++) {
+                    i = (i + 1) % 256;
+                    j = (j + S[i]) % 256;
+                    
+                    var temp = S[i];
+                    S[i] = S[j];
+                    S[j] = temp;
+                    
+                    var keystreamByte = S[(S[i] + S[j]) % 256];
+                    outputBytes.push(inputBytes[k] ^ keystreamByte);
+                }
+
+                if (isDecrypt) {
+                    var result = '';
+                    for (var i = 0; i < outputBytes.length; i++) {
+                        result += String.fromCharCode(outputBytes[i]);
+                    }
+                    return result;
+                } else {
+                    var result = '';
+                    for (var i = 0; i < outputBytes.length; i++) {
+                        result += ('0' + outputBytes[i].toString(16)).slice(-2);
+                    }
+                    return result.toUpperCase();
+                }
+            }
+
+            // Trivium Stream Cipher
+            triviumCipher(text, key, iv, isDecrypt) {
+                if (!key) throw new Error('Key is required (80-bit hex string expected)');
+                if (!iv) throw new Error('IV is required (80-bit hex string expected)');
+
+                // Parse key and IV as hex
+                var keyBits = this.hexToBinary(key.replace(/[^0-9A-Fa-f]/g, ''));
+                var ivBits = this.hexToBinary(iv.replace(/[^0-9A-Fa-f]/g, ''));
+
+                if (keyBits.length < 80) throw new Error('Key must be 80 bits (20 hex characters)');
+                if (ivBits.length < 80) throw new Error('IV must be 80 bits (20 hex characters)');
+
+                keyBits = keyBits.slice(0, 80);
+                ivBits = ivBits.slice(0, 80);
+
+                // Initialize state (288 bits total)
+                var state = [];
+                
+                // s1-s93: IV (80 bits) + zeros (13 bits)
+                for (var i = 0; i < 80; i++) state.push(ivBits[i]);
+                for (var i = 80; i < 93; i++) state.push(0);
+                
+                // s94-s177: Key (80 bits) + zeros (4 bits)
+                for (var i = 0; i < 80; i++) state.push(keyBits[i]);
+                for (var i = 173; i < 177; i++) state.push(0);
+                
+                // s178-s288: zeros (108 bits) + ones (3 bits)
+                for (var i = 177; i < 285; i++) state.push(0);
+                for (var i = 285; i < 288; i++) state.push(1);
+
+                // Warm up (1152 rounds)
+                for (var i = 0; i < 1152; i++) {
+                    var t1 = state[65] ^ state[92];
+                    var t2 = state[161] ^ state[176];
+                    var t3 = state[242] ^ state[287];
+
+                    var z = t1 ^ t2 ^ t3;
+
+                    t1 = t1 ^ (state[90] & state[91]) ^ state[170];
+                    t2 = t2 ^ (state[174] & state[175]) ^ state[263];
+                    t3 = t3 ^ (state[285] & state[286]) ^ state[68];
+
+                    state.unshift(t3);
+                    state.pop();
+                }
+
+                // Generate keystream and encrypt/decrypt
+                var inputBits = isDecrypt ? this.hexToBinary(text.replace(/[^0-9A-Fa-f]/g, '')) : this.stringToBinary(text);
+                var outputBits = [];
+
+                for (var i = 0; i < inputBits.length; i++) {
+                    var t1 = state[65] ^ state[92];
+                    var t2 = state[161] ^ state[176];
+                    var t3 = state[242] ^ state[287];
+
+                    var z = t1 ^ t2 ^ t3;
+                    outputBits.push(inputBits[i] ^ z);
+
+                    t1 = t1 ^ (state[90] & state[91]) ^ state[170];
+                    t2 = t2 ^ (state[174] & state[175]) ^ state[263];
+                    t3 = t3 ^ (state[285] & state[286]) ^ state[68];
+
+                    state.unshift(t3);
+                    state.pop();
+                }
+
+                return isDecrypt ? this.binaryToString(outputBits) : this.binaryToHex(outputBits);
+            }
+
+            process() {
+                this.error = '';
+                this.output = '';
+                
+                try {
+                    var result = '';
+                    var isDecrypt = this.mode === 'decrypt';
+                    
+                    switch(this.cipher) {
+                        case 'a51':
+                            result = this.a51Cipher(this.input, this.key, isDecrypt);
+                            break;
+                        case 'rc4':
+                            result = this.rc4Cipher(this.input, this.key, isDecrypt);
+                            break;
+                        case 'trivium':
+                            result = this.triviumCipher(this.input, this.key, this.iv, isDecrypt);
+                            break;
+                    }
+                    
+                    this.output = result;
+                } catch (err) {
+                    this.error = err.message;
+                }
+                
+                this.render();
+            }
+
+            render() {
+                var cipherDescriptions = {
+                    a51: 'A5/1 is a stream cipher used in GSM mobile communications. It uses three LFSRs with irregular clocking. Key: 64-bit hex.',
+                    rc4: 'RC4 (Rivest Cipher 4) is a widely-used stream cipher. It uses a variable-length key (typically 40-256 bits) to initialize a 256-byte state.',
+                    trivium: 'Trivium is a hardware-oriented stream cipher. It uses an 80-bit key and 80-bit IV to initialize a 288-bit internal state.'
+                };
+
+                var needsIV = this.cipher === 'trivium';
+
+                var errorHtml = this.error ? 
+                    '<div class="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg"><p class="text-red-200">⚠️ ' + this.error + '</p></div>' : '';
+                
+                var outputHtml = this.output ? 
+                    '<div><label class="block text-white font-semibold mb-2">' + (this.mode === 'encrypt' ? 'Ciphertext' : 'Plaintext') + '</label><div class="p-4 bg-white/20 border border-white/30 rounded-lg"><p class="text-white font-mono break-all text-sm">' + this.output + '</p></div></div>' : '';
+
+                var ivHtml = needsIV ? 
+                    '<div class="mb-6"><label class="block text-white font-semibold mb-2">🔢 IV (Initialization Vector)</label><input id="ivInput" type="text" placeholder="Enter IV (80-bit hex, e.g., 0123456789ABCDEF0123)" class="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-purple-400 focus:outline-none"></div>' : '';
+
+                document.getElementById('app').innerHTML = 
+                    '<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-8">' +
+                        '<div class="max-w-4xl mx-auto">' +
+                            '<div class="text-center mb-8">' +
+                                '<h1 class="text-4xl font-bold text-white mb-2">🌊 Stream Cipher Tool</h1>' +
+                                '<p class="text-purple-200">A5/1, RC4, and Trivium Stream Ciphers</p>' +
+                            '</div>' +
+                            '<div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 shadow-2xl border border-white/20">' +
+                                '<div class="mb-6">' +
+                                    '<label class="block text-white font-semibold mb-2">Select Cipher</label>' +
+                                    '<select id="cipherSelect" class="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white focus:ring-2 focus:ring-purple-400 focus:outline-none">' +
+                                        '<option value="rc4">RC4</option>' +
+                                        '<option value="a51">A5/1</option>' +
+                                        '<option value="trivium">Trivium</option>' +
+                                    '</select>' +
+                                '</div>' +
+                                '<div class="mb-6">' +
+                                    '<label class="block text-white font-semibold mb-2">Mode</label>' +
+                                    '<div class="flex gap-4">' +
+                                        '<button id="encryptBtn" class="flex-1 p-3 rounded-lg font-semibold transition-all ' + (this.mode === 'encrypt' ? 'bg-purple-600 text-white shadow-lg' : 'bg-white/20 text-white hover:bg-white/30') + '">🔒 Encrypt</button>' +
+                                        '<button id="decryptBtn" class="flex-1 p-3 rounded-lg font-semibold transition-all ' + (this.mode === 'decrypt' ? 'bg-purple-600 text-white shadow-lg' : 'bg-white/20 text-white hover:bg-white/30') + '">🔓 Decrypt</button>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="mb-6">' +
+                                    '<label class="block text-white font-semibold mb-2">🔑 Key</label>' +
+                                    '<input id="keyInput" type="text" placeholder="' + (this.cipher === 'a51' ? 'Enter key (64-bit hex, e.g., 0123456789ABCDEF)' : this.cipher === 'trivium' ? 'Enter key (80-bit hex, e.g., 0123456789ABCDEF0123)' : 'Enter key (any text)') + '" class="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-purple-400 focus:outline-none">' +
+                                '</div>' +
+                                ivHtml +
+                                '<div class="mb-6">' +
+                                    '<label class="block text-white font-semibold mb-2">' + (this.mode === 'encrypt' ? 'Plaintext' : 'Ciphertext (Hex)') + '</label>' +
+                                    '<textarea id="inputText" placeholder="' + (this.mode === 'encrypt' ? 'Enter text to encrypt...' : 'Enter hex ciphertext to decrypt...') + '" rows="4" class="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-purple-400 focus:outline-none resize-none"></textarea>' +
+                                '</div>' +
+                                '<button id="processBtn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg mb-6">' +
+                                    (this.mode === 'encrypt' ? 'Encrypt' : 'Decrypt') +
+                                '</button>' +
+                                errorHtml +
+                                outputHtml +
+                            '</div>' +
+                            '<div class="mt-6 bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">' +
+                                '<h3 class="text-white font-semibold mb-2">About ' + this.cipher.toUpperCase() + ':</h3>' +
+                                '<p class="text-purple-200 text-sm">' + cipherDescriptions[this.cipher] + '</p>' +
+                            '</div>' +
+                            '<div class="mt-4 bg-yellow-500/10 backdrop-blur-lg rounded-xl p-4 border border-yellow-500/20">' +
+                                '<p class="text-yellow-200 text-sm"><strong>Note:</strong> Stream ciphers generate a keystream that is XORed with the plaintext. Encryption and decryption use the same operation with the same key/IV.</p>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+
+                this.attachEvents();
+            }
+
+            attachEvents() {
+                var tool = this;
+                
+                document.getElementById('cipherSelect').value = this.cipher;
+                document.getElementById('cipherSelect').addEventListener('change', function() {
+                    tool.cipher = this.value;
+                    tool.output = '';
+                    tool.error = '';
+                    tool.render();
+                });
+
+                document.getElementById('keyInput').value = this.key;
+                document.getElementById('keyInput').addEventListener('input', function() {
+                    tool.key = this.value;
+                });
+
+                if (document.getElementById('ivInput')) {
+                    document.getElementById('ivInput').value = this.iv;
+                    document.getElementById('ivInput').addEventListener('input', function() {
+                        tool.iv = this.value;
+                    });
+                }
+
+                document.getElementById('inputText').value = this.input;
+                document.getElementById('inputText').addEventListener('input', function() {
+                    tool.input = this.value;
+                });
+
+                document.getElementById('encryptBtn').addEventListener('click', function() {
+                    tool.mode = 'encrypt';
+                    tool.output = '';
+                    tool.error = '';
+                    tool.render();
+                });
+
+                document.getElementById('decryptBtn').addEventListener('click', function() {
+                    tool.mode = 'decrypt';
+                    tool.output = '';
+                    tool.error = '';
+                    tool.render();
+                });
+
+                document.getElementById('processBtn').addEventListener('click', function() {
+                    tool.process();
+                });
+            }
+        }
+
+        var tool = new StreamCipherTool();
+        tool.render();
+    </script>
+</body>
+</html>
