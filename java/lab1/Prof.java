@@ -1,22 +1,92 @@
 import java.io.File;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.InputMismatchException;
+import java.util.Arrays;
 import java.io.FileWriter;
 import java.io.IOException;
 
+public class Prof {
+    private String nume;
+    private String obiect;
+    private double rautaciune;
+    private float galagie;
+    private short nrGrupe;
+    private long[] nrStudenti;
+    private static int profesori = 0;
 
-public class Lab1 {
-    public static class Prof {
-        private String nume;
-        private String obiect;
-        private double rautaciune;
-        private float galagie;
-        private short nrGrupe;
-        private long nrStudenti[];
-        private static int profesori = 0;
+    // implicit
+    public Prof() {
+        this.nume = "Profesor";
+        this.obiect = "Nu preda la moment!";
+        this.rautaciune = 0d;
+        this.galagie = 60f;
+        this.nrGrupe = 0;
+        this.nrStudenti = new long[0];
+        profesori++;
+    }
 
-        //implicit
-        public Prof(){
+    // partial
+    public Prof(String nume, double rautaciune, float galagie) {
+        this();
+        this.nume = nume;
+        this.rautaciune = rautaciune;
+        this.galagie = galagie;
+    }
+
+    // partial
+    public Prof(String nume, String obiect) {
+        this();
+        this.nume = nume;
+        this.obiect = obiect;
+    }
+
+    // full
+    public Prof(String nume, String obiect, double rautaciune, float galagie, short nrGrupe, long[] nrStudenti) {
+        this.nume = nume;
+        this.obiect = obiect;
+        this.rautaciune = rautaciune;
+        this.galagie = galagie;
+        this.nrGrupe = nrGrupe;
+        this.nrStudenti = Arrays.copyOf(nrStudenti, nrGrupe);
+        profesori++;
+    }
+
+    // copiere
+    public Prof(Prof p) {
+        this.nume = p.nume;
+        this.obiect = p.obiect;
+        this.rautaciune = p.rautaciune;
+        this.galagie = p.galagie;
+        this.nrGrupe = p.nrGrupe;
+        this.nrStudenti = Arrays.copyOf(p.nrStudenti, p.nrGrupe);
+        profesori++;
+    }
+
+    // citire din fisier
+    public Prof(String fileName) {
+        try {
+            Scanner sc = new Scanner(new File(fileName));
+
+            this.nume = sc.nextLine();
+            this.obiect = sc.nextLine();
+            this.rautaciune = sc.nextDouble();
+            this.galagie = sc.nextFloat();
+            this.nrGrupe = sc.nextShort();
+            this.nrStudenti = new long[this.nrGrupe];
+            sc.nextLine(); // consumă linia rămasă
+
+            String[] stringArr = sc.nextLine().split(" ");
+
+            for (int i = 0; i < nrGrupe && i < stringArr.length; i++) {
+                this.nrStudenti[i] = Long.parseLong(stringArr[i]);
+            }
+
+            profesori++;
+            sc.close();
+        } catch (java.io.FileNotFoundException e) {
+            System.out.println("Fisierul nu a fost gasit: " + fileName);
+            // Set default values if file not found
             this.nume = "Profesor";
             this.obiect = "Nu preda la moment!";
             this.rautaciune = 0d;
@@ -25,283 +95,323 @@ public class Lab1 {
             this.nrStudenti = new long[0];
             profesori++;
         }
+    }
 
-        //partial
-        public Prof(String nume, double rautaciune, float galagie){
-            this();
+    // setters
+    public void setNume(String nume) {
+        this.nume = nume;
+    }
 
-            this.nume = nume;
-            this.rautaciune = Check.checkPositiveDouble(rautaciune);
-            this.galagie = Check.checkPositiveFloat(galagie);
+    public void setObiect(String obiect) {
+        this.obiect = obiect;
+    }
+
+    public void setRautaciune(double rautaciune) {
+        this.rautaciune = rautaciune;
+    }
+
+    public void setGalagie(float galagie) {
+        this.galagie = galagie;
+    }
+
+    public void setNrGrupe(short nrGrupe) {
+        if (nrGrupe < 0) throw new IllegalArgumentException("nrGrupe negativ");
+        // resize nrStudenti preserving existing values
+        this.nrStudenti = Arrays.copyOf(this.nrStudenti, nrGrupe);
+        this.nrGrupe = nrGrupe;
+    }
+
+    public void setNrStudenti(long[] nrStudenti) {
+        this.nrStudenti = Arrays.copyOf(nrStudenti, this.nrGrupe);
+    }
+
+    // getters
+    public String getNume() {
+        return this.nume;
+    }
+
+    public String getObiect() {
+        return this.obiect;
+    }
+
+    public double getRautaciune() {
+        return this.rautaciune;
+    }
+
+    public float getGalagie() {
+        return this.galagie;
+    }
+
+    public short getNrGrupe() {
+        return this.nrGrupe;
+    }
+
+    public long[] getNrStudenti() {
+        return this.nrStudenti;
+    }
+
+    public long getNrStudentiSingle(int i) {
+        if (i < 0 || i >= nrGrupe) throw new IndexOutOfBoundsException("index invalid");
+        return this.nrStudenti[i];
+    }
+
+    public static int getProfesori() {
+        return profesori;
+    }
+
+    // metode
+    public void afisare() {
+        System.out.println("Nume: " + nume);
+        System.out.println("Obiect: " + obiect);
+        System.out.println("Rautaciune: " + rautaciune);
+        System.out.println("Galagie: " + galagie);
+        System.out.println("Numar grupe: " + nrGrupe);
+        System.out.print("Numar studenti pe grupe: ");
+        for (int i = 0; i < nrGrupe; i++) {
+            System.out.print(nrStudenti[i] + " ");
         }
-        
-        //partial
-        public Prof(String nume, String obiect){
-            this();
-            this.nume = nume;
-            this.obiect = obiect;
+        System.out.println();
+    }
+
+    public long sumaSarmanilor() {
+        long suma = 0L;
+        for (int i = 0; i < nrGrupe; i++) {
+            suma += nrStudenti[i];
         }
+        return suma;
+    }
 
+    public void citireProf() {
+        Scanner scanner = new Scanner(System.in);
 
-
-        //full
-        public Prof(String nume, String obiect, double rautaciune, float galagie, short nrGrupe, long[] nrStudenti){
-            this.nume = nume;
-            this.obiect = obiect;
-            this.rautaciune = Check.checkPositiveDouble(rautaciune);
-            this.galagie = Check.checkPositiveFloat(galagie);
-            this.nrGrupe = Check.checkPositiveShort(nrGrupe);
-            this.nrStudenti = new long[nrGrupe];
-            for(int i=0; i<nrGrupe; i++){
-                this.nrStudenti[i] = nrStudenti[i];
-            }
-            profesori++;
-        }
-
-        //copiere
-        public Prof(Prof p){
-            this.nume = p.nume;
-            this.obiect = p.obiect;
-            this.rautaciune = p.rautaciune;
-            this.galagie = p.galagie;
-            this.nrGrupe = p.nrGrupe;
-            this.nrStudenti = new long[p.nrGrupe];
-            System.arraycopy(p.nrStudenti, 0, this.nrStudenti, 0, p.nrGrupe);
-            profesori++;
-        }
-
-
-        //citire din fisier
-        public Prof(String fileName) {
+        // choose handling strategy
+        int choice = 1; // 1=standard, 2=lazy, 3=try-in-try
+        boolean flag;
+        do {
+            flag = false;
             try {
-                Scanner sc = new Scanner(new File(fileName));
-
-                this.nume = sc.nextLine();
-                this.obiect = sc.nextLine();
-                this.rautaciune = (double) sc.nextInt();
-                this.galagie = (float) sc.nextFloat();
-                this.nrGrupe = (short) sc.nextShort();
-                this.nrStudenti = new long[this.nrGrupe];
-                sc.nextLine(); // consumă linia rămasă
-
-                String stringArr[] = sc.nextLine().split(" ");
-                
-                for(int i = 0; i < nrGrupe; i++){
-                    this.nrStudenti[i] = (long) Integer.parseInt(stringArr[i]);
+                System.out.println("Alege modul de tratare erori: 1=standard, 2=lenes, 3=try-in-try");
+                System.out.print("Optiune: ");
+                choice = scanner.nextInt();
+                scanner.nextLine();
+                if (choice < 1 || choice > 3) {
+                    System.out.println("Optiune invalida.");
+                    flag = true;
                 }
-
-                profesori++;
-                sc.close();
-            } catch (java.io.FileNotFoundException e) {
-                System.out.println("Fisierul nu a fost gasit: " + fileName);
-                // Set default values if file not found
-                this.nume = "Profesor";
-                this.obiect = "Nu preda la moment!";
-                this.rautaciune = 0d;
-                this.galagie = 60f;
-                this.nrGrupe = 0;
-                this.nrStudenti = new long[0];
-                profesori++;
+            } catch (InputMismatchException e) {
+                ProfException.handleStandard(e, scanner);
+                flag = true;
             }
-        }
+        } while (flag);
 
-        //setters
-        public void setNume(String nume){
-
-            this.nume = nume;
-        }
-        public void setObiect(String obiect){
-            this.obiect = obiect;
-        }   
-        public void setRautaciune(double rautaciune){
-            this.rautaciune = rautaciune;
-        }
-        public void setGalagie(float galagie){
-            this.galagie = Check.checkPositiveFloat(galagie);
-        }
-        public void setNrGrupe(short nrGrupe){
-            this.nrGrupe = Check.checkPositiveShort(nrGrupe);
-
-            long[] temp = new long[nrGrupe];
-            temp = nrStudenti;
-            if (nrStudenti.length < temp.length) {
-                for(int i = 0; i < nrStudenti.length; i++){
-                nrStudenti[i] = temp[i];
-                }
-            }else{
-                for(int i = 0; i < nrGrupe; i++){
-                nrStudenti[i] = temp[i];
-                }
-            }
-        }
-        public void setNrStudenti(long nrStudenti[]){
-            this.nrStudenti = new long[nrGrupe];
-            for(int i=0; i<nrGrupe; i++){
-                this.nrStudenti[i] = Check.checkPositiveLong(nrStudenti[i]);
-            }
-        }
-        //getters
-        public String getNume(){
-            return this.nume;
-        }
-        public String getObiect(){
-            return this.obiect;
-        }
-        public double getRautaciune(){
-            return this.rautaciune;
-        }
-        public float getGalagie(){
-            return this.galagie;
-        }
-        public short getNrGrupe(){
-            return this.nrGrupe;
-        }
-        public long[] getNrStudenti(){
-            return this.nrStudenti;
-        }
-        public long getNrStudentiSingle(int i){
-            Check.checkPositiveLong(i);
-            return this.nrStudenti[i];
-        }
-        public static int getProfesori(){
-            return profesori;
-        }
-
-
-        //metode
-        public void afisare(){
-            System.out.println("Nume: " + nume);
-            System.out.println("Obiect: " + obiect);
-            System.out.println("Rautaciune: " + rautaciune);
-            System.out.println("Galagie: " + galagie);
-            System.out.println("Numar grupe: " + nrGrupe);
-            System.out.print("Numar studenti pe grupe: ");
-            for(int i=0; i<nrGrupe; i++){
-                System.out.print(nrStudenti[i] + " ");
-            }
-            System.out.println();
-        }
-
-        public int sumaSarmanilor(){
-            int suma = 0;
-            for(int i = 0; i<nrGrupe; i++){
-                suma += nrStudenti[i];
-            }
-            return suma;
-        }
-
-        public void citireProf(){
-            java.util.Scanner scanner = new java.util.Scanner(System.in);
-            
-            
+        // read name (must be non-empty)
+        do {
+            flag = false;
             System.out.print("Nume: ");
-            this.nume = scanner.nextLine();
+            this.nume = scanner.nextLine().trim();
+            if (this.nume.isEmpty()) {
+                System.out.println("Nume gol. Reincercati.");
+                flag = true;
+            }
+        } while (flag);
+
+        // read object (non-empty)
+        do {
+            flag = false;
             System.out.print("Obiect: ");
-            this.obiect = scanner.nextLine();
-            System.out.print("Rautaciune: ");
-            this.rautaciune = Check.checkPositiveDouble(scanner.nextDouble());
-            System.out.print("Galagie: ");
-            this.galagie = Check.checkPositiveFloat(scanner.nextFloat());
-            System.out.print("Numar grupe: ");
-            this.nrGrupe = Check.checkPositiveShort(scanner.nextShort());
-            this.nrStudenti = new long[nrGrupe];
-            for(int i=0; i<nrGrupe; i++){
-                System.out.print("Numar studenti grupa " + (i+1) + ": ");
-                this.nrStudenti[i] = Check.checkPositiveLong(scanner.nextLong());
+            this.obiect = scanner.nextLine().trim();
+            if (this.obiect.isEmpty()) {
+                System.out.println("Obiect gol. Reincercati.");
+                flag = true;
             }
-            
-        }
+        } while (flag);
 
-        public void randomProf(){
-            Random r = new Random();
-
-            String numePosibile[] = {"Cristian","Eugen","Nicolae","Catalin","Stanescu","Maria","Vlad"};
-            String obiectePosibile[] = {"Java","Fundamentele","C++","Antreprenoriat","Rust","Criptare"};
-
-            this.nume = numePosibile[r.nextInt(0,6)];
-            this.obiect = obiectePosibile[r.nextInt(0,5)];
-
-            this.rautaciune = r.nextInt(0,100);
-            this.galagie = r.nextInt(40,120);
-            this.nrGrupe = (short) r.nextInt(0,12);
-            this.nrStudenti = new long[nrGrupe];
-            for(int i = 0; i < nrGrupe; i++){
-                this.nrStudenti[i] = r.nextLong(1,35);
-            }
-        }
-
-
-        public void popularProf(Prof b){
-            int popularitateProfA = 0;
-            int popularitateProfB = 0;
-            for(int i = 0; i < this.nrGrupe;i++){
-                popularitateProfA += this.nrStudenti[i];
-            }
-            for(int i = 0; i < b.nrGrupe;i++){
-                popularitateProfB += b.nrStudenti[i];
-            }
-            if(popularitateProfA>=popularitateProfB){
-                System.out.println("Profesorul cel mai popular este: " + this.nume + ",si preda " + this.obiect);
-            }else {
-                System.out.println("Profesorul cel mai popular este: " + b.nume + ",si preda " + b.obiect);
-            }
-
-        }
-
-        public static void stressCalc(Prof a,Prof b){
-
-            //how does it affect student
-            float stressA  = (float) ((a.rautaciune * 0.7) + (a.galagie * 0.3));
-            float stressB  = (float) ((b.rautaciune * 0.7) + (b.galagie * 0.3));
-
-            if(stressA==stressB){
-                System.out.println("Ambii profesori sunt la fel de stresanti, cu un indice de stress de " + stressA);
-            }else if(stressA>stressB){
-                System.out.println("Profesorul " + a.nume + " este mai stresant decit " + b.nume + ", cu un indice de stress de " + stressA + " fata de " + stressB);
-            }else{
-                System.out.println("Profesorul " + a.nume + " este mai putin stresant decit " + b.nume + ", cu un indice de stress de " + stressA + " fata de " + stressB);
-            }
-
-            //comparation of the teachers
-            boolean rautaciuneTop = a.rautaciune<=b.rautaciune;
-            boolean galagieTop = a.galagie <= b.galagie;
-            if (rautaciuneTop ^ galagieTop) {
-                if(rautaciuneTop){
-                    System.out.println("Amindoi profi sunt stresanti, cel mai rautacios fiind " + b.nume + " cu o rautaciune de " + b.rautaciune + ". Si cel mai galagios fiind " + a.nume + " cu o galagie de " + a.galagie);
-                }else{
-                    System.out.println("Amindoi profi sunt stresanti, cel mai rautacios fiind " + a.nume + " cu o rautaciune de " + a.rautaciune + ". Si cel mai galagios fiind " + b.nume + " cu o galagie de " + b.galagie);
-                }
-            }else{
-                if (rautaciuneTop) {
-                    System.out.println("Profesorul cel mai stressant este " + b.nume + " cu o rautaciune de " + b.rautaciune + " si o galagie de " + b.galagie);
-                }else{
-                    System.out.println("Profesorul cel mai stressant este " + a.nume + " cu o rautaciune de " + a.rautaciune + " si o galagie de " + a.galagie);
-                }
-            }
-        }
-
-        public void inscrieProf(String fileName,Prof prof) {
+        // rautaciune (double)
+        do {
+            flag = false;
             try {
-                FileWriter fw = new FileWriter(fileName + ".txt");
-                fw.write(prof.nume + "\n");
-                fw.write(prof.obiect + "\n");
-                fw.write(prof.rautaciune + "\n");
-                fw.write(prof.galagie + "\n");
-                fw.write(prof.nrGrupe + "\n");
-                for(int i=0; i<prof.nrGrupe; i++){
-                    fw.write(prof.nrStudenti[i] + " ");
+                System.out.print("Rautaciune (>=0): ");
+                double v = scanner.nextDouble();
+                ProfException.validateNonNegativeDouble(v);
+                this.rautaciune = v;
+                scanner.nextLine();
+            } catch (InputMismatchException | ProfException e) {
+                if (choice == 1) {
+                    ProfException.handleStandard(e, scanner);
+                    flag = true; // retry
+                } else if (choice == 2) {
+                    this.rautaciune = ProfException.handleLazyDouble(e, 0.0);
+                    flag = false; // lazy: accept default and continue
+                } else { // try-in-try
+                    this.rautaciune = ProfException.handleTryInTryDouble(scanner, 0.0);
+                    flag = false;
                 }
-                fw.close();
-            } catch (IOException e) {
-                System.out.println("Eroare la scrierea in fisier: " + e.getMessage());
             }
+        } while (flag);
+
+        // galagie (float)
+        do {
+            flag = false;
+            try {
+                System.out.print("Galagie (>=0): ");
+                float v = scanner.nextFloat();
+                ProfException.validateNonNegativeFloat(v);
+                this.galagie = v;
+                scanner.nextLine();
+            } catch (InputMismatchException | ProfException e) {
+                if (choice == 1) {
+                    ProfException.handleStandard(e, scanner);
+                    flag = true;
+                } else if (choice == 2) {
+                    this.galagie = ProfException.handleLazyFloat(e, 0f);
+                    flag = false;
+                } else {
+                    this.galagie = ProfException.handleTryInTryFloat(scanner, 0f);
+                    flag = false;
+                }
+            }
+        } while (flag);
+
+        // nrGrupe (short)
+        do {
+            flag = false;
+            try {
+                System.out.print("Numar grupe (>=0): ");
+                short v = scanner.nextShort();
+                ProfException.validateNonNegativeShort(v);
+                this.nrGrupe = v;
+                scanner.nextLine();
+            } catch (InputMismatchException | ProfException e) {
+                if (choice == 1) {
+                    ProfException.handleStandard(e, scanner);
+                    flag = true;
+                } else if (choice == 2) {
+                    this.nrGrupe = ProfException.handleLazyShort(e, (short) 0);
+                    flag = false;
+                } else {
+                    this.nrGrupe = ProfException.handleTryInTryShort(scanner, (short) 0);
+                    flag = false;
+                }
+            }
+        } while (flag);
+
+        // allocate array
+        if (this.nrGrupe < 0) this.nrGrupe = 0; // safety
+        this.nrStudenti = new long[this.nrGrupe];
+
+        // read students per group
+        for (int i = 0; i < this.nrGrupe; i++) {
+            final int idx = i;
+            do {
+                flag = false;
+                try {
+                    System.out.print("Numar studenti grupa " + (idx + 1) + " (>=0): ");
+                    long v = scanner.nextLong();
+                    ProfException.validateNonNegativeLong(v);
+                    this.nrStudenti[idx] = v;
+                    scanner.nextLine();
+                } catch (InputMismatchException | ProfException e) {
+                    if (choice == 1) {
+                        ProfException.handleStandard(e, scanner);
+                        flag = true;
+                    } else if (choice == 2) {
+                        this.nrStudenti[idx] = ProfException.handleLazyLong(e, 0L);
+                        flag = false;
+                    } else {
+                        this.nrStudenti[idx] = ProfException.handleTryInTryLong(scanner, 0L);
+                        flag = false;
+                    }
+                }
+            } while (flag);
         }
     }
 
-    
+    public void randomProf() {
+        Random r = new Random();
 
-    public static void main(String[] args){
-        /*
+        String[] numePosibile = {"Cristian", "Eugen", "Nicolae", "Catalin", "Stanescu", "Maria", "Vlad"};
+        String[] obiectePosibile = {"Java", "Fundamentele", "C++", "Antreprenoriat", "Rust", "Criptare"};
+
+        this.nume = numePosibile[r.nextInt(0, 6)];
+        this.obiect = obiectePosibile[r.nextInt(0, 5)];
+
+        this.rautaciune = r.nextInt(0, 100);
+        this.galagie = r.nextInt(40, 120);
+        this.nrGrupe = (short) r.nextInt(0, 12);
+        this.nrStudenti = new long[nrGrupe];
+        for (int i = 0; i < nrGrupe; i++) {
+            this.nrStudenti[i] = Math.abs(r.nextLong() % 35) + 1; // fallback for older JDKs
+        }
+    }
+
+    public void popularProf(Prof b) {
+        int popularitateProfA = 0;
+        int popularitateProfB = 0;
+        for (int i = 0; i < this.nrGrupe; i++) {
+            popularitateProfA += this.nrStudenti[i];
+        }
+        for (int i = 0; i < b.nrGrupe; i++) {
+            popularitateProfB += b.nrStudenti[i];
+        }
+        if (popularitateProfA >= popularitateProfB) {
+            System.out.println("Profesorul cel mai popular este: " + this.nume + ",si preda " + this.obiect);
+        } else {
+            System.out.println("Profesorul cel mai popular este: " + b.nume + ",si preda " + b.obiect);
+        }
+
+    }
+
+    public static void stressCalc(Prof a, Prof b) {
+
+        // how does it affect student
+        float stressA = (float) ((a.rautaciune * 0.7) + (a.galagie * 0.3));
+        float stressB = (float) ((b.rautaciune * 0.7) + (b.galagie * 0.3));
+
+        if (stressA == stressB) {
+            System.out.println("Ambii profesori sunt la fel de stresanti, cu un indice de stress de " + stressA);
+        } else if (stressA > stressB) {
+            System.out.println("Profesorul " + a.nume + " este mai stresant decit " + b.nume + ", cu un indice de stress de " + stressA + " fata de " + stressB);
+        } else {
+            System.out.println("Profesorul " + a.nume + " este mai putin stresant decit " + b.nume + ", cu un indice de stress de " + stressA + " fata de " + stressB);
+        }
+
+        // comparation of the teachers
+        boolean rautaciuneTop = a.rautaciune <= b.rautaciune;
+        boolean galagieTop = a.galagie <= b.galagie;
+        if (rautaciuneTop ^ galagieTop) {
+            if (rautaciuneTop) {
+                System.out.println("Amindoi profi sunt stresanti, cel mai rautacios fiind " + b.nume + " cu o rautaciune de " + b.rautaciune + ". Si cel mai galagios fiind " + a.nume + " cu o galagie de " + a.galagie);
+            } else {
+                System.out.println("Amindoi profi sunt stresanti, cel mai rautacios fiind " + a.nume + " cu o rautaciune de " + a.rautaciune + ". Si cel mai galagios fiind " + b.nume + " cu o galagie de " + b.galagie);
+            }
+        } else {
+            if (rautaciuneTop) {
+                System.out.println("Profesorul cel mai stressant este " + b.nume + " cu o rautaciune de " + b.rautaciune + " si o galagie de " + b.galagie);
+            } else {
+                System.out.println("Profesorul cel mai stressant este " + a.nume + " cu o rautaciune de " + a.rautaciune + " si o galagie de " + a.galagie);
+            }
+        }
+
+    }
+
+    public void inscrieProf(String fileName, Prof prof) {
+        try {
+            FileWriter fw = new FileWriter(fileName + ".txt");
+            fw.write(prof.nume + "\n");
+            fw.write(prof.obiect + "\n");
+            fw.write(prof.rautaciune + "\n");
+            fw.write(prof.galagie + "\n");
+            fw.write(prof.nrGrupe + "\n");
+            for (int i = 0; i < prof.nrGrupe; i++) {
+                fw.write(prof.nrStudenti[i] + " ");
+            }
+            fw.close();
+        } catch (IOException e) {
+            System.out.println("Eroare la scrierea in fisier: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
 
         // 1. Creare profi cu toți constructorii
         Prof prof1 = new Prof(); // implicit
@@ -386,7 +496,6 @@ public class Lab1 {
 
         // 9. Inscrierea profesorului în fișier
             univer[0].inscrieProf("profInscrisManual", univer[0]);
-    
 
 
         File folder = new File(".");
@@ -395,44 +504,33 @@ public class Lab1 {
         if (files != null) {
             System.out.println("\n--- Ștergerea fișierelor .txt existente (excluzând profText.txt) ---");
             
-            for(int i = 0; i<files.length; i++){
-                System.out.println("Șterg: " + files[i].getName());
-                files[i].delete();
+            for(File f : files){
+                System.out.println("Șterg: " + f.getName());
+                boolean ok = f.delete();
+                if (!ok) System.out.println("Nu am putut șterge: " + f.getName());
             }
 
         }
-        for(int i = 0; i< univer.length; i++){
-            
-           if(univer[i] != null){
-                try {
-                    FileWriter fw = new FileWriter(univer[i].getNume() + ".txt");
-                    fw.write(univer[i].getNume() + "\n");
-                    fw.write(univer[i].getObiect() + "\n");
-                    fw.write(univer[i].getRautaciune() + "\n");
-                    fw.write(univer[i].getGalagie() + "\n");
-                    fw.write(univer[i].getNrGrupe() + "\n");
-                    for(int j = 0; j < univer[i].getNrGrupe(); j++){    
-                        fw.write(univer[i].getNrStudenti()[j] + " ");
+        for(Prof p : univer){
+            if (p == null) continue;
+                 try {
+                    FileWriter fw = new FileWriter(p.getNume() + ".txt");
+                    fw.write(p.getNume() + "\n");
+                    fw.write(p.getObiect() + "\n");
+                    fw.write(p.getRautaciune() + "\n");
+                    fw.write(p.getGalagie() + "\n");
+                    fw.write(p.getNrGrupe() + "\n");
+                    for(int j = 0; j < p.getNrGrupe(); j++){
+                        fw.write(p.getNrStudenti()[j] + " ");
                     }
 
-                    fw.close();
-                } catch (Exception e) {
-                    System.out.println("error");
-                }
-            }else{
-                System.out.println("Found a null entry, skipping.");
-            }
+                     fw.close();
+                 } catch (Exception e) {
+                     System.out.println("error");
+                 }
         }
 
-        */
 
 
-        Prof profCitit = new Prof("Profesor");
-
-        profCitit.afisare();
-
-        profCitit.citireProf();
-
-        profCitit.inscrieProf("profcititsilamscris", profCitit);
     }
 }

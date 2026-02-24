@@ -192,3 +192,47 @@ class NrStudentiInvalidException extends ProfException {
         return valoareCorecta;
     }
 }
+
+class NoteProcessingException extends Exception {
+    public NoteProcessingException(String message) {
+        super(message);
+    }
+
+    public void prelucrare() {
+        System.out.println("Prelucrarea exceptiei NoteProcessingException: " + getMessage());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

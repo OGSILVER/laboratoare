@@ -1,6 +1,5 @@
-package ;
-
-// ...existing code...
+import java.util.Scanner;
+import java.util.InputMismatchException;
 
 public class ProfException extends Exception {
     public ProfException(String message) {
@@ -129,4 +128,3 @@ public class ProfException extends Exception {
         }
     }
 }
-

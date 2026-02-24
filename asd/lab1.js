@@ -137,9 +137,15 @@
         }
 
 
+
+        function binarySearch(arr, target) {
+            
+        }
+
+
     console.log(randomArray)
 
-    console.log(mergeSort(randomArray))
+    console.log(binarySearch(randomArray))
 
 
 
