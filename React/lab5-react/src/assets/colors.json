@@ -1,0 +1,15 @@
+[
+  { "id": 1, "label": "coral",      "color": "#F96B6B" },
+  { "id": 2, "label": "orange",     "color": "#F4864A" },
+  { "id": 3, "label": "yellow",     "color": "#F5C842" },
+  { "id": 4, "label": "green",      "color": "#4DC97A" },
+  { "id": 5, "label": "blue",       "color": "#5B9BF5" },
+  { "id": 6, "label": "teal",       "color": "#3EC9C2" },
+  { "id": 7, "label": "purple",     "color": "#9B6FD4" },
+  { "id": 8, "label": "pink",       "color": "#F06BA8" },
+  { "id": 9, "label": "hot-pink",   "color": "#E63B78" },
+  { "id": 10, "label": "dark-navy", "color": "#2E3A4E" },
+  { "id": 11, "label": "gray",      "color": "#8C9BAB" },
+  { "id": 12, "label": "black",     "color": "#1A1A1A" },
+  { "id": 13, "label": "white",     "color": "#F0F0F0" }
+]

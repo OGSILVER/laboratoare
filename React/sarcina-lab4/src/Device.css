@@ -1,0 +1,18 @@
+.Active{
+background-color: lime;
+}
+
+.Warning{
+    background-color: yellow;
+}
+
+.Critical{
+    background-color: red;
+}
+
+
+.button{
+    width: 100px;
+    height: 25px;
+    background-color: gray;
+}

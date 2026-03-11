@@ -1,0 +1,6 @@
+[
+  { "id": "rtr-core-1", "name": "Core Router Alpha", "type": "Router", "status": "Active", "load": 45 },
+  { "id": "sw-edge-2", "name": "Edge Switch West", "type": "Switch", "status": "Warning", "load": 82 },
+  { "id": "db-main-1", "name": "Primary Database", "type": "Server", "status": "Critical", "load": 91 },
+  { "id": "fw-ext-1", "name": "External Firewall", "type": "Firewall", "status": "Active", "load": 20 }
+]
