@@ -45,6 +45,27 @@ public final class LegendaryCard extends EpicCard implements FlyingTroop {
                 '}';
     }
 
+
+    @Override
+    public void readData() {
+        super.readData();
+        while (true) {
+            try {
+                String input;
+                System.out.println("Enter ultimate damage (1-50): ");
+                input = System.console().readLine();
+                int ultimateDamageInput = Integer.parseInt(input);
+                if (ultimateDamageInput < 1 || ultimateDamageInput > 50) {
+                    System.out.println("Ultimate damage must be between 1 and 50");
+                    continue;
+                }
+                this.ultimateDamage = ultimateDamageInput;
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+    }
     public void ultimateAttack(int damage) {
         System.out.println(this.name + " performs an ultimate attack dealing " + damage + " damage!");
     }

@@ -39,6 +39,27 @@ public class EpicCard extends RareCard implements FlyingTroop {
                 '}';
     }
 
+    @Override
+    public void readData() {
+        super.readData();
+        while (true) {
+            try {
+                String input;
+                System.out.println("Enter spawn damage (1-20): ");
+                input = System.console().readLine();
+                int spawnDamageInput = Integer.parseInt(input);
+                if (spawnDamageInput < 1 || spawnDamageInput > 20) {
+                    System.out.println("Spawn damage must be between 1 and 20");
+                    continue;
+                }
+                this.spawnDamage = spawnDamageInput;
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+    }
+
 
 
 

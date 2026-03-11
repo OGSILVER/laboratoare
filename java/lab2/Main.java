@@ -14,6 +14,14 @@ public class Main {
         arr[3] = new EpicCard();
         arr[4] = new LegendaryCard(400,60,"LegendaryCard1",15,100);
 
+        for (int i = 0; i < arr.length; i++) {
+            if ( arr[i] instanceof EpicCard){
+                ((EpicCard) arr[i]).fly();
+            }
+
+        }
+
+
 
         FlyingTroop fliers[] = new FlyingTroop[2];
         fliers[0] = new EpicCard();
@@ -33,6 +41,12 @@ public class Main {
             System.out.println(c);
         }
 
+
+        arr[0].readData();
+        arr[4].readData();
+
+
+        arr[4].saveObjectToFile("legendaryCard.txt");
 
     }
 }

@@ -46,41 +46,59 @@ public abstract class Card{
     }
 
     public void readData(){
-        while(true){
-            try{
+
+
                 String input;
-                System.out.println("Enter card name: ");
-                input = System.console().readLine();
-                if(input.isEmpty()){
-                    System.out.println("Name cannot be empty");
-                    continue;
+                while (true) {
+                    try {
+                        System.out.println("Enter card name: ");
+                        input = System.console().readLine();
+                        if (input.isEmpty()) {
+                            System.out.println("Name cannot be empty");
+                            continue;
+                        }
+                        this.name = input;
+                        break;
+                    }catch(Exception e){
+                        System.out.println("Invalid input. Please enter a valid name.");
+                    }
                 }
-                this.name = input;
 
-                System.out.println("Enter card health (1-100): ");
-                input = System.console().readLine();
-                int healthInput = Integer.parseInt(input);
-                if(healthInput < 1 || healthInput > 100){
-                    System.out.println("Health must be between 1 and 100");
-                    continue;
+                while (true) {
+                    try {
+                        System.out.println("Enter card health (1-100): ");
+                        input = System.console().readLine();
+                        int healthInput = Integer.parseInt(input);
+                        if (healthInput < 1 || healthInput > 100) {
+                            System.out.println("Health must be between 1 and 100");
+                            continue;
+                        }
+                        this.health = healthInput;
+                        break;
+                    }catch (Exception e){
+                        System.out.println("Invalid input. Please enter a number.");
+                    }
                 }
-                this.health = healthInput;
 
-                System.out.println("Enter card damage (1-50): ");
-                input = System.console().readLine();
-                float damageInput = Float.parseFloat(input);
-                if(damageInput < 1 || damageInput > 50){
-                    System.out.println("Damage must be between 1 and 50");
-                    continue;
+                while (true) {
+                    try {
+                        System.out.println("Enter card damage (1-50): ");
+                        input = System.console().readLine();
+                        float damageInput = Float.parseFloat(input);
+                        if (damageInput < 1 || damageInput > 50) {
+                            System.out.println("Damage must be between 1 and 50");
+                            continue;
+                        }
+                        this.damage = damageInput;
+                        break;
+                    }catch (Exception e){
+                        System.out.println("Invalid input. Please enter a number.");
+                    }
                 }
-                this.damage = damageInput;
 
-                break; // exit loop if all inputs are valid
-            }catch(Exception e){
-                System.out.println("An error occurred. Please try again.");
-                continue;
-            }
-        }
+
+
+
     }
 
 

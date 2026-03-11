@@ -125,7 +125,7 @@ function aproximateRoots(fn){
       roots = metodaCoardelor(fn, searchRange.min, searchRange.max, precision, 100, findAllToggle);
       break;
     case "Newton-Raphson":
-      roots = metodaNewtonHybrid(fn, searchRange.min, searchRange.max, precision, 100, findAllToggle);
+      roots = metodaNewton(fn, searchRange.min, searchRange.max, precision, 100, findAllToggle);
       break;
   }
     console.log("Roots found:", roots);
@@ -159,10 +159,12 @@ function metodaBisectiei(fn, a, b, tol, maxIter, findAll) {
         }else{
           a = c;
         }
+        console.log(`Iteration ${i + 1}: a=${a}, b=${b}, c=${c}, f(c)=${fn(c)}`);
       }
       if (!findAll){
         return {root: c, iterations: iterations, timestamp: performance.now() - startTime};
       }
+      
       roots.push({root: c, iterations: iterations, timestamp: performance.now() - startTime});
     }
     x0 = x1;
@@ -192,8 +194,8 @@ function metodaSecantelor(fn, x0, x1, tol, maxIter, findAll) {
         const fA = fn(a), fB = fn(b);
         if (fB - fA === 0) break; // avoid division by zero
         c = b - fB * (b - a) / (fB - fA);
-        iterations = i + 1;
-        if (Math.abs(fn(c)) < tol) break;
+
+        if (Math.abs(fn(c)) < tol){iterations = i + 1; break;};
         a = b;
         b = c;
       }
@@ -223,13 +225,17 @@ function metodaCoardelor(fn, a, b, tol, maxIter, findAll) {
 
       for (let i = 0; i < maxIter; i++) {
         c = x1 - fb * (x1 - x0) / (fb - fa);
-        iterations = i + 1;
         const fc = fn(c);
-        if (Math.abs(fc) < tol) break;
-        x0 = x1;
-        fa = fb;
-        x1 = c;
-        fb = fn(x1);
+        
+        if (Math.abs(fc) < tol){iterations = i + 1; break;}
+
+        if (fa * fc < 0) {
+          x1 = c;
+          fb = fc;
+        } else {
+          x0 = c;
+          fa = fc;
+        }
       }
 
       const timestamp = performance.now() - startTime;
@@ -243,8 +249,8 @@ function metodaCoardelor(fn, a, b, tol, maxIter, findAll) {
   return findAll ? roots : null;
 }
 
-function metodaNewtonHybrid(fn, min, max, tol, maxIter, findAll) {
-  const scanStep = 0.05; // for detecting sign changes
+function metodaNewton(fn, min, max, tol, maxIter, findAll) {
+  const scanStep = 0.05;
   let roots = [];
 
   function derivative(f, x) {
@@ -257,52 +263,26 @@ function metodaNewtonHybrid(fn, min, max, tol, maxIter, findAll) {
 
   while (x1 <= max) {
     if (fn(x0) * fn(x1) < 0) {
-      // Root is bracketed in [a, b]
-      let a = x0;
-      let b = x1;
-      let x = (a + b) / 2; // start Newton from midpoint
+      let x = (x0 + x1) / 2; // punct de start: mijlocul intervalului
       let iterations = 0;
       const startTime = performance.now();
 
       for (let i = 0; i < maxIter; i++) {
-        iterations++;
-
         const fVal = fn(x);
-        if (Math.abs(fVal) < tol) break;
-
         const d = derivative(fn, x);
 
-        let xNew;
-        if (Math.abs(d) > 1e-10) {
-          // Newton step
-          xNew = x - fVal / d;
-        } else {
-          // fallback to bisection
-          xNew = (a + b) / 2;
-        }
+        if (Math.abs(d) < 1e-10) break; // derivată nulă, nu putem continua
 
-        // If Newton jumps out, fallback to bisection
-        if (xNew < a || xNew > b) {
-          xNew = (a + b) / 2;
-        }
+        x = x - fVal / d;
+        iterations = i + 1;
 
-        // Update bracket
-        if (fn(a) * fn(xNew) < 0) {
-          b = xNew;
-        } else {
-          a = xNew;
-        }
-
-        x = xNew;
+        if (Math.abs(fn(x)) < tol) break;
       }
 
       const timestamp = performance.now() - startTime;
 
-      // Deduplicate roots
       if (!roots.some(r => Math.abs(r.root - x) < tol)) {
-        if (!findAll) {
-          return { root: x, iterations, timestamp };
-        }
+        if (!findAll) return { root: x, iterations, timestamp };
         roots.push({ root: x, iterations, timestamp });
       }
     }
@@ -313,6 +293,8 @@ function metodaNewtonHybrid(fn, min, max, tol, maxIter, findAll) {
 
   return findAll ? roots : null;
 }
+
+    
 
 
 function drawPoint(roots) {

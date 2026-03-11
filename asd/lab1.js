@@ -133,9 +133,19 @@
         }
 
 
+
+        function binarySearch(arr, target) {
+            
+        }
+
+
     console.log(randomArray)
 
+<<<<<<< HEAD
+    console.log(binarySearch(randomArray))
+=======
     console.log(insertionSort(randomArray))
+>>>>>>> refs/remotes/origin/master
 
 
 
