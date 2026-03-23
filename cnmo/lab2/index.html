@@ -2,112 +2,112 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Function Approximation</title>
+<title>Function Approximation — CN Lab 2</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
 <div class="app">
 
-<h1>Polynomial Approximation of Functions</h1>
+  <h1>Polynomial Approximation of Functions</h1>
 
-<section class="card">
+  <!-- FUNCTION DEFINITION -->
+  <section class="card">
+    <h2>1. Function definition</h2>
+    <div class="row">
+      <label><input type="radio" name="mode" value="collection" checked> From collection</label>
+      <label><input type="radio" name="mode" value="interactive"> Interactive (custom)</label>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label>f(x)</label>
+      <select id="functionOption">
+        <option value="x*Math.exp(2*Math.sin(x))">x·e^(2sin x)</option>
+        <option value="Math.sin(x)+Math.cos(x)">sin(x) + cos(x)</option>
+        <option value="Math.sin(x-6)-Math.cos(x-1)">sin(x−6) − cos(x−1)</option>
+        <option value="Math.exp(-x)-8*Math.cos(4*x)+Math.pow(x,3)">e^(−x) − 8cos(4x) + x³</option>
+        <option value="Math.pow(x,3)-5*Math.atan(x)">x³ − 5·arctg(x)</option>
+      </select>
+      <input type="text" id="fxInput" placeholder="e.g. x*x - Math.sin(x)" style="display:none;flex:1">
+    </div>
+  </section>
 
-<h2>Function definition</h2>
+  <!-- INTERVAL -->
+  <section class="card">
+    <h2>2. Approximation interval [a, b]</h2>
+    <div class="row">
+      <label>a</label>
+      <input type="number" id="a" value="-3" step="0.5">
+      <label>b</label>
+      <input type="number" id="b" value="3" step="0.5">
+    </div>
+  </section>
 
-<div class="row">
+  <!-- METHOD -->
+  <section class="card">
+    <h2>3. Approximation method</h2>
+    <div class="row">
+      <label>Algorithm</label>
+      <select id="method">
+        <option value="lagrange">Lagrange (global)</option>
+        <option value="piecewise">Piecewise Lagrange</option>
+        <option value="spline">Cubic Spline (natural)</option>
+      </select>
 
-<label>
-<input type="radio" name="mode" value="collection" checked>
-From collection
-</label>
+      <label>Nodes n</label>
+      <input type="number" id="nNodes" value="8" min="2" max="40">
 
-<label>
-<input type="radio" name="mode" value="interactive">
-Interactive
-</label>
+      <label>Node type</label>
+      <select id="nodeType">
+        <option value="equidistant">Equidistant</option>
+        <option value="chebyshev">Chebyshev</option>
+        <option value="random">Random</option>
+      </select>
 
-</div>
+      <label>Eval points m</label>
+      <input type="number" id="mPoints" value="200" min="50" max="1000">
+    </div>
+  </section>
 
-<div class="row">
+  <!-- COMPUTE BUTTON -->
+  <div style="text-align:center;margin:14px 0">
+    <button id="computeBtn">▶ Compute Approximation</button>
+  </div>
 
-<label>f(x)</label>
+  <!-- STATS -->
+  <div class="stats-row" id="statsRow" style="display:none">
+    <div class="stat-box">
+      <div class="stat-label">Max error</div>
+      <div class="stat-val" id="statMax">—</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Mean error</div>
+      <div class="stat-val" id="statMean">—</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Nodes n</div>
+      <div class="stat-val" id="statN">—</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Algorithm</div>
+      <div class="stat-val" id="statAlgo">—</div>
+    </div>
+  </div>
 
-<select id="functionOption">
-
-<option>Math.exp(x)*Math.sin(2*x)</option>
-<option>x + Math.sin(x)*Math.cos(x)</option>
-<option>Math.sin(6*x) - Math.cos(x)</option>
-<option>Math.exp(-x)*Math.cos(4*x) - x*x*x</option>
-<option>x*x*x - 5*Math.atan(x)</option>
-
-</select>
-
-<input type="text" id="fxInput" placeholder="x*x - 2">
-
-</div>
-
-</section>
-
-
-<section class="card">
-
-<h2>Interval</h2>
-
-<div class="row">
-
-<label>a</label>
-<input type="number" id="a" value="-5">
-
-<label>b</label>
-<input type="number" id="b" value="5">
-
-</div>
-
-</section>
-
-
-<section class="card">
-
-<h2>Approximation method</h2>
-
-<div class="row">
-
-<select>
-<option>Lagrange</option>
-<option>Piecewise Lagrange</option>
-<option>Cubic Spline</option>
-</select>
-
-<label>Nodes n</label>
-<input type="number" value="10">
-
-<label>Node type</label>
-
-<select>
-<option>Equidistant</option>
-<option>Chebyshev</option>
-<option>Random</option>
-</select>
-
-</div>
-
-</section>
-
-
-<section class="output">
-
-<div class="chart-box">
-<canvas id="myGraph"></canvas>
-</div>
-
-</section>
+  <!-- CHARTS -->
+  <section class="output">
+    <div class="chart-box">
+      <div class="chart-title">f(x) and approximation P(x)</div>
+      <canvas id="graphApprox"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Approximation error |f(x) − P(x)|</div>
+      <canvas id="graphError"></canvas>
+    </div>
+  </section>
 
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
