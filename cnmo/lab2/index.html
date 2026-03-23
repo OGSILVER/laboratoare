@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Function Approximation</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>Polynomial Approximation of Functions</h1>
+
+<section class="card">
+
+<h2>Function definition</h2>
+
+<div class="row">
+
+<label>
+<input type="radio" name="mode" value="collection" checked>
+From collection
+</label>
+
+<label>
+<input type="radio" name="mode" value="interactive">
+Interactive
+</label>
+
+</div>
+
+<div class="row">
+
+<label>f(x)</label>
+
+<select id="functionOption">
+
+<option>Math.exp(x)*Math.sin(2*x)</option>
+<option>x + Math.sin(x)*Math.cos(x)</option>
+<option>Math.sin(6*x) - Math.cos(x)</option>
+<option>Math.exp(-x)*Math.cos(4*x) - x*x*x</option>
+<option>x*x*x - 5*Math.atan(x)</option>
+
+</select>
+
+<input type="text" id="fxInput" placeholder="x*x - 2">
+
+</div>
+
+</section>
+
+
+<section class="card">
+
+<h2>Interval</h2>
+
+<div class="row">
+
+<label>a</label>
+<input type="number" id="a" value="-5">
+
+<label>b</label>
+<input type="number" id="b" value="5">
+
+</div>
+
+</section>
+
+
+<section class="card">
+
+<h2>Approximation method</h2>
+
+<div class="row">
+
+<select>
+<option>Lagrange</option>
+<option>Piecewise Lagrange</option>
+<option>Cubic Spline</option>
+</select>
+
+<label>Nodes n</label>
+<input type="number" value="10">
+
+<label>Node type</label>
+
+<select>
+<option>Equidistant</option>
+<option>Chebyshev</option>
+<option>Random</option>
+</select>
+
+</div>
+
+</section>
+
+
+<section class="output">
+
+<div class="chart-box">
+<canvas id="myGraph"></canvas>
+</div>
+
+</section>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
